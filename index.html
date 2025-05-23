@@ -1,22 +1,4 @@
-function resetSection() {
-            if (currentRole !== 'gm') return;
-            alert('Section reset functionality - coming soon');
-        }
-
-        function triggerEvent() {
-            if (currentRole !== 'gm') return;
-            alert('Event trigger functionality - coming soon');
-        }
-
-        function exportData() {
-            if (currentRole !== 'gm') return;
-            exportGameData();
-        }
-
-        function importGameData() {
-            if (currentRole !== 'gm') return;
-            alert('Import functionality - coming soon');
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2673,6 +2655,11 @@ function resetSection() {
 
         // Auto-save every 30 seconds
         setInterval(saveGameState, 30000);
+
+        // Start timer system when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Timer system will be initialized in showMainApp
+        });
     </script>
 </body>
 </html>
