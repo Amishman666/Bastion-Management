@@ -585,12 +585,178 @@ function resetSection() {
             color: var(--cyan);
         }
 
-        .npc-actions {
-            position: absolute;
-            top: 15px;
-            right: 15px;
+        /* Section status and action styles */
+        .section-status {
             display: flex;
-            gap: 5px;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .status-indicator {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-damaged {
+            background: var(--red);
+            color: white;
+        }
+
+        .status-cleaning {
+            background: var(--gold);
+            color: #000;
+        }
+
+        .status-clean {
+            background: var(--cyan);
+            color: #000;
+        }
+
+        .status-repairing {
+            background: var(--purple);
+            color: white;
+        }
+
+        .status-operational {
+            background: var(--green);
+            color: #000;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .section-btn {
+            background: linear-gradient(45deg, var(--cyan), #0099cc);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .section-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        .section-btn:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .section-timer {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .power-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .power-draw {
+            color: var(--red);
+        }
+
+        .power-generation {
+            color: var(--green);
+        }
+
+        /* Mission assignment styles */
+        .mission-assignment {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .assignment-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .assign-btn {
+            background: var(--green);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .assign-btn:hover {
+            background: var(--cyan);
+        }
+
+        .assign-btn:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .npc-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .npc-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .npc-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--cyan);
+        }
+
+        .npc-option.selected {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: var(--cyan);
+        }
+
+        .npc-option.unavailable {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .mission-timer {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid var(--gold);
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--gold);
         }
 
         /* Sections Grid */
@@ -925,6 +1091,9 @@ function resetSection() {
             <button class="tab-btn active" onclick="switchTab('dashboard')">
                 <i class="fas fa-tachometer-alt"></i> Dashboard
             </button>
+            <button class="tab-btn player-only" onclick="switchTab('missions')">
+                <i class="fas fa-scroll"></i> Mission Board
+            </button>
             <button class="tab-btn gm-only" onclick="switchTab('missions')">
                 <i class="fas fa-tasks"></i> Mission Control
             </button>
@@ -1044,83 +1213,100 @@ function resetSection() {
         </div>
 
         <!-- Mission Control Tab (GM Only) -->
-        <div id="missionsTab" class="tab-content gm-only">
-            <div class="mission-management">
-                <h2><i class="fas fa-tasks"></i> Mission Control</h2>
-                
-                <!-- Mission Creation Form -->
-                <div class="mission-form">
-                    <div class="form-group">
-                        <label class="form-label">Mission Title</label>
-                        <input type="text" class="form-input" id="missionTitle" placeholder="Enter mission title">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Difficulty</label>
-                        <select class="form-input" id="missionDifficulty">
-                            <option value="easy">Easy</option>
-                            <option value="medium">Medium</option>
-                            <option value="hard">Hard</option>
-                            <option value="legendary">Legendary</option>
-                        </select>
-                    </div>
-                    <div class="form-group full-width">
-                        <label class="form-label">Mission Description</label>
-                        <textarea class="form-input" id="missionDescription" rows="3" placeholder="Describe the mission"></textarea>
-                    </div>
+        <div id="missionsTab" class="tab-content">
+            <!-- GM Mission Control -->
+            <div class="gm-only">
+                <div class="mission-management">
+                    <h2><i class="fas fa-tasks"></i> Mission Control</h2>
                     
-                    <!-- Stat Requirements -->
-                    <div class="form-group full-width">
-                        <h4 style="color: var(--gold); margin-bottom: 10px;">Stat Requirements (Optional)</h4>
+                    <!-- Mission Creation Form -->
+                    <div class="mission-form">
+                        <div class="form-group">
+                            <label class="form-label">Mission Title</label>
+                            <input type="text" class="form-input" id="missionTitle" placeholder="Enter mission title">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Difficulty</label>
+                            <select class="form-input" id="missionDifficulty">
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                                <option value="legendary">Legendary</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label class="form-label">Mission Description</label>
+                            <textarea class="form-input" id="missionDescription" rows="3" placeholder="Describe the mission"></textarea>
+                        </div>
+                        
+                        <!-- Stat Requirements -->
+                        <div class="form-group full-width">
+                            <h4 style="color: var(--gold); margin-bottom: 10px;">Stat Requirements (Optional)</h4>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Skill Requirement</label>
+                            <input type="number" class="form-input" id="missionSkill" value="0" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Stealth Requirement</label>
+                            <input type="number" class="form-input" id="missionStealth" value="0" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Combat Requirement</label>
+                            <input type="number" class="form-input" id="missionCombat" value="0" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tech Requirement</label>
+                            <input type="number" class="form-input" id="missionTech" value="0" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Social Requirement</label>
+                            <input type="number" class="form-input" id="missionSocial" value="0" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Will Requirement</label>
+                            <input type="number" class="form-input" id="missionWill" value="0" min="0" max="10">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Reward Type</label>
+                            <select class="form-input" id="rewardType">
+                                <option value="celestial-power">Celestial Power</option>
+                                <option value="celestial-silver">Celestial Silver</option>
+                                <option value="runic-shards">Runic Shards</option>
+                                <option value="divine-essence">Divine Essence</option>
+                                <option value="technical-expertise">Tech Expertise</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Reward Amount</label>
+                            <input type="number" class="form-input" id="rewardAmount" value="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Mission Duration (hours)</label>
+                            <input type="number" class="form-input" id="missionDuration" value="24" min="1">
+                        </div>
+                        <div class="form-group full-width">
+                            <button class="login-btn" onclick="createMission()">
+                                <i class="fas fa-plus"></i> Create Mission
+                            </button>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Skill Requirement</label>
-                        <input type="number" class="form-input" id="missionSkill" value="0" min="0" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Stealth Requirement</label>
-                        <input type="number" class="form-input" id="missionStealth" value="0" min="0" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Combat Requirement</label>
-                        <input type="number" class="form-input" id="missionCombat" value="0" min="0" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Tech Requirement</label>
-                        <input type="number" class="form-input" id="missionTech" value="0" min="0" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Social Requirement</label>
-                        <input type="number" class="form-input" id="missionSocial" value="0" min="0" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Will Requirement</label>
-                        <input type="number" class="form-input" id="missionWill" value="0" min="0" max="10">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Reward Type</label>
-                        <select class="form-input" id="rewardType">
-                            <option value="celestial-power">Celestial Power</option>
-                            <option value="celestial-silver">Celestial Silver</option>
-                            <option value="runic-shards">Runic Shards</option>
-                            <option value="divine-essence">Divine Essence</option>
-                            <option value="technical-expertise">Tech Expertise</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Reward Amount</label>
-                        <input type="number" class="form-input" id="rewardAmount" value="10">
-                    </div>
-                    <div class="form-group full-width">
-                        <button class="login-btn" onclick="createMission()">
-                            <i class="fas fa-plus"></i> Create Mission
-                        </button>
+
+                    <!-- Mission List -->
+                    <div class="mission-list" id="missionList">
+                        <!-- Missions will be dynamically generated -->
                     </div>
                 </div>
-
-                <!-- Mission List -->
-                <div class="mission-list" id="missionList">
-                    <!-- Missions will be dynamically generated -->
+            </div>
+            
+            <!-- Player Mission Board -->
+            <div class="player-only">
+                <div class="mission-management">
+                    <h2><i class="fas fa-scroll"></i> Mission Board</h2>
+                    <div class="mission-list" id="playerMissionList">
+                        <!-- Player missions will be dynamically generated -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -1451,6 +1637,11 @@ function resetSection() {
             initializeDashboard();
             renderMissions();
             renderNPCs();
+            renderPlayerMissions();
+            
+            // Start timer system
+            setInterval(updateTimers, 60000); // Update every minute
+            updateTimers(); // Initial update
         }
 
         function logout() {
@@ -1505,7 +1696,16 @@ function resetSection() {
             return true;
         }
 
+        // Override upgrade purchasing to require operational sections
         function purchaseUpgrade(sectionId, pathType, upgradeIndex) {
+            const sectionState = gameState.sectionStates[sectionId];
+            
+            // Check if section is operational
+            if (sectionState.status !== 'operational') {
+                alert('Section must be cleaned and repaired before upgrades can be purchased!');
+                return;
+            }
+            
             const upgrade = sections[sectionId].paths[pathType][upgradeIndex];
             
             if (canAffordUpgrade(upgrade.cost) && !gameState.upgrades[sectionId][pathType].includes(upgradeIndex)) {
@@ -1588,6 +1788,7 @@ function resetSection() {
             const difficulty = document.getElementById('missionDifficulty').value;
             const rewardType = document.getElementById('rewardType').value;
             const rewardAmount = parseInt(document.getElementById('rewardAmount').value);
+            const duration = parseInt(document.getElementById('missionDuration').value);
             
             // Get stat requirements
             const requirements = {
@@ -1611,16 +1812,21 @@ function resetSection() {
                 difficulty,
                 requirements,
                 reward: { type: rewardType, amount: rewardAmount },
-                status: 'active'
+                status: 'active',
+                duration,
+                assignedTo: null,
+                assignedAt: null
             };
             
             gameState.missions.push(mission);
             renderMissions();
+            renderPlayerMissions();
             
             // Clear form
             document.getElementById('missionTitle').value = '';
             document.getElementById('missionDescription').value = '';
             document.getElementById('rewardAmount').value = '10';
+            document.getElementById('missionDuration').value = '24';
             
             // Reset stat requirements
             ['missionSkill', 'missionStealth', 'missionCombat', 'missionTech', 'missionSocial', 'missionWill'].forEach(id => {
@@ -1632,6 +1838,7 @@ function resetSection() {
 
         function renderMissions() {
             const container = document.getElementById('missionList');
+            if (!container) return;
             container.innerHTML = '';
             
             gameState.missions.forEach(mission => {
@@ -1645,6 +1852,22 @@ function resetSection() {
                     });
                 }
                 
+                // Calculate time remaining if assigned
+                let timeInfo = '';
+                if (mission.assignedTo && mission.assignedAt) {
+                    const now = Date.now();
+                    const endTime = mission.assignedAt + (mission.duration * 60 * 60 * 1000);
+                    const remaining = endTime - now;
+                    
+                    if (remaining > 0) {
+                        const hours = Math.floor(remaining / (60 * 60 * 1000));
+                        const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                        timeInfo = `<div class="mission-timer">⏱️ ${hours}h ${minutes}m remaining</div>`;
+                    } else {
+                        timeInfo = `<div class="mission-timer">✅ Mission Complete - Awaiting GM Resolution</div>`;
+                    }
+                }
+                
                 const missionHtml = `
                     <div class="mission-item">
                         <div class="mission-actions">
@@ -1656,13 +1879,156 @@ function resetSection() {
                         ${statReqs.length > 0 ? `<div class="mission-stats">${statReqs.join('')}</div>` : ''}
                         <div class="mission-rewards">
                             <span>Difficulty: ${mission.difficulty}</span>
+                            <span>Duration: ${mission.duration}h</span>
                             <span>Reward: ${resourceIcons[mission.reward.type]} ${mission.reward.amount}</span>
                             <span>Status: ${mission.status}</span>
+                            ${mission.assignedTo ? `<span>Assigned to: ${mission.assignedTo}</span>` : ''}
                         </div>
+                        ${timeInfo}
                     </div>
                 `;
                 container.innerHTML += missionHtml;
             });
+        }
+
+        function renderPlayerMissions() {
+            const container = document.getElementById('playerMissionList');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const activeMissions = gameState.missions.filter(m => m.status === 'active');
+            
+            activeMissions.forEach(mission => {
+                // Create stat requirements display
+                const statReqs = [];
+                if (mission.requirements) {
+                    Object.entries(mission.requirements).forEach(([stat, value]) => {
+                        if (value > 0) {
+                            statReqs.push(`<span class="stat-requirement">${stat.charAt(0).toUpperCase() + stat.slice(1)}: ${value}</span>`);
+                        }
+                    });
+                }
+                
+                // Check if mission is assigned and calculate time
+                let timeInfo = '';
+                let assignmentSection = '';
+                
+                if (mission.assignedTo && mission.assignedAt) {
+                    const now = Date.now();
+                    const endTime = mission.assignedAt + (mission.duration * 60 * 60 * 1000);
+                    const remaining = endTime - now;
+                    
+                    if (remaining > 0) {
+                        const hours = Math.floor(remaining / (60 * 60 * 1000));
+                        const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                        timeInfo = `<div class="mission-timer">⏱️ ${hours}h ${minutes}m remaining - Assigned to ${mission.assignedTo}</div>`;
+                    } else {
+                        timeInfo = `<div class="mission-timer">✅ Mission Complete - Awaiting GM Resolution</div>`;
+                    }
+                } else {
+                    // Show assignment options
+                    assignmentSection = `
+                        <div class="mission-assignment">
+                            <h4 style="color: var(--gold); margin-bottom: 10px;">Assign Mission</h4>
+                            <div class="assignment-options">
+                                <button class="assign-btn" onclick="assignMission(${mission.id}, 'Jon')">
+                                    <i class="fas fa-user"></i> Send Jon (RP)
+                                </button>
+                                <button class="assign-btn" onclick="showNPCSelector(${mission.id})">
+                                    <i class="fas fa-users"></i> Send NPCs
+                                </button>
+                            </div>
+                            <div id="npc-selector-${mission.id}" class="npc-selector" style="display: none;">
+                                ${gameState.npcs.filter(npc => npc.status === 'available').map(npc => `
+                                    <div class="npc-option" onclick="toggleNPCSelection(${mission.id}, ${npc.id})">
+                                        <div style="font-weight: 600; margin-bottom: 5px;">${npc.name}</div>
+                                        <div style="font-size: 0.8rem; display: flex; gap: 5px;">
+                                            <span>S:${npc.stats.skill}</span>
+                                            <span>St:${npc.stats.stealth}</span>
+                                            <span>C:${npc.stats.combat}</span>
+                                            <span>T:${npc.stats.tech}</span>
+                                            <span>So:${npc.stats.social}</span>
+                                            <span>W:${npc.stats.will}</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                <button class="assign-btn" onclick="assignSelectedNPCs(${mission.id})" style="grid-column: 1 / -1; margin-top: 10px;">
+                                    Confirm Assignment
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                const missionHtml = `
+                    <div class="mission-item">
+                        <div class="mission-title">${mission.title}</div>
+                        <div class="mission-description">${mission.description}</div>
+                        ${statReqs.length > 0 ? `<div class="mission-stats">${statReqs.join('')}</div>` : ''}
+                        <div class="mission-rewards">
+                            <span>Difficulty: ${mission.difficulty}</span>
+                            <span>Duration: ${mission.duration}h</span>
+                            <span>Reward: ${resourceIcons[mission.reward.type]} ${mission.reward.amount}</span>
+                        </div>
+                        ${timeInfo}
+                        ${assignmentSection}
+                    </div>
+                `;
+                container.innerHTML += missionHtml;
+            });
+        }
+
+        function assignMission(missionId, assignee) {
+            const mission = gameState.missions.find(m => m.id === missionId);
+            if (mission && !mission.assignedTo) {
+                mission.assignedTo = assignee;
+                mission.assignedAt = Date.now();
+                mission.status = 'in-progress';
+                
+                renderMissions();
+                renderPlayerMissions();
+                saveGameState();
+                
+                if (assignee === 'Jon') {
+                    alert('Mission assigned to Jon for RP! Notify your GM.');
+                }
+            }
+        }
+
+        function showNPCSelector(missionId) {
+            const selector = document.getElementById(`npc-selector-${missionId}`);
+            selector.style.display = selector.style.display === 'none' ? 'grid' : 'none';
+        }
+
+        const selectedNPCs = {};
+
+        function toggleNPCSelection(missionId, npcId) {
+            if (!selectedNPCs[missionId]) selectedNPCs[missionId] = [];
+            
+            const index = selectedNPCs[missionId].indexOf(npcId);
+            const element = event.target.closest('.npc-option');
+            
+            if (index > -1) {
+                selectedNPCs[missionId].splice(index, 1);
+                element.classList.remove('selected');
+            } else {
+                selectedNPCs[missionId].push(npcId);
+                element.classList.add('selected');
+            }
+        }
+
+        function assignSelectedNPCs(missionId) {
+            const selected = selectedNPCs[missionId];
+            if (!selected || selected.length === 0) {
+                alert('Please select at least one NPC');
+                return;
+            }
+            
+            const npcNames = selected.map(id => gameState.npcs.find(n => n.id === id)?.name).join(', ');
+            assignMission(missionId, npcNames);
+            
+            // Reset selection
+            selectedNPCs[missionId] = [];
         }
 
         function deleteMission(missionId) {
@@ -1685,6 +2051,7 @@ function resetSection() {
                 document.getElementById('missionDifficulty').value = mission.difficulty;
                 document.getElementById('rewardType').value = mission.reward.type;
                 document.getElementById('rewardAmount').value = mission.reward.amount;
+                document.getElementById('missionDuration').value = mission.duration || 24;
                 
                 // Set stat requirements
                 if (mission.requirements) {
@@ -1697,6 +2064,246 @@ function resetSection() {
                 }
                 
                 deleteMission(missionId);
+            }
+        }
+
+        // Section Management
+        function startCleaning(sectionId) {
+            const sectionState = gameState.sectionStates[sectionId];
+            if (sectionState.status === 'damaged') {
+                sectionState.status = 'cleaning';
+                sectionState.cleanStart = Date.now();
+                
+                updateSectionDisplay(sectionId);
+                saveGameState();
+            }
+        }
+
+        function startRepair(sectionId) {
+            const sectionState = gameState.sectionStates[sectionId];
+            const costs = getSectionRepairCost(sectionId);
+            
+            // Check if player can afford repair
+            if (canAffordRepair(costs)) {
+                // Deduct costs
+                Object.entries(costs).forEach(([resource, amount]) => {
+                    gameState.resources[resource] -= amount;
+                    document.getElementById(resource).textContent = gameState.resources[resource];
+                    document.getElementById(resource + '-input').value = gameState.resources[resource];
+                });
+                
+                sectionState.status = 'repairing';
+                sectionState.repairStart = Date.now();
+                
+                updateSectionDisplay(sectionId);
+                updateAllUpgradeStates();
+                updatePowerLevel();
+                saveGameState();
+            } else {
+                alert('Insufficient resources for repair!');
+            }
+        }
+
+        function getSectionRepairCost(sectionId) {
+            const costs = {
+                luminarium: { 'celestial-silver': 20, 'runic-shards': 3, 'technical-expertise': 2 },
+                sanctum: { 'celestial-silver': 15, 'divine-essence': 1 },
+                wards: { 'celestial-silver': 25, 'runic-shards': 5, 'technical-expertise': 3 },
+                throne: { 'celestial-silver': 18, 'runic-shards': 2, 'technical-expertise': 1 },
+                gateway: { 'celestial-silver': 22, 'runic-shards': 4, 'divine-essence': 1 },
+                fountain: { 'celestial-silver': 16, 'divine-essence': 2 }
+            };
+            return costs[sectionId] || {};
+        }
+
+        function canAffordRepair(costs) {
+            return Object.entries(costs).every(([resource, amount]) => {
+                return gameState.resources[resource] >= amount;
+            });
+        }
+
+        function updateSectionDisplay(sectionId) {
+            const sectionElement = document.getElementById(sectionId);
+            if (!sectionElement) return;
+            
+            const sectionState = gameState.sectionStates[sectionId];
+            const section = sections[sectionId];
+            
+            // Update status indicator
+            const statusElement = sectionElement.querySelector('.section-status');
+            if (statusElement) {
+                statusElement.innerHTML = getSectionStatusHTML(sectionId);
+            }
+            
+            // Update action buttons
+            const actionsElement = sectionElement.querySelector('.section-actions');
+            if (actionsElement) {
+                actionsElement.innerHTML = getSectionActionsHTML(sectionId);
+            }
+            
+            // Update power indicator
+            const powerElement = sectionElement.querySelector('.power-indicator');
+            if (powerElement) {
+                powerElement.innerHTML = getPowerIndicatorHTML(sectionId);
+            }
+        }
+
+        function getSectionStatusHTML(sectionId) {
+            const sectionState = gameState.sectionStates[sectionId];
+            const now = Date.now();
+            
+            let statusClass = 'status-' + sectionState.status;
+            let statusText = sectionState.status.toUpperCase();
+            let timerHTML = '';
+            
+            // Check if timers are complete
+            if (sectionState.status === 'cleaning' && sectionState.cleanStart) {
+                const elapsed = now - sectionState.cleanStart;
+                const duration = 72 * 60 * 60 * 1000; // 72 hours in milliseconds
+                
+                if (elapsed >= duration) {
+                    // Cleaning complete
+                    sectionState.status = 'clean';
+                    sectionState.cleanStart = null;
+                    
+                    // Grant cleaning rewards
+                    grantCleaningRewards();
+                    
+                    statusClass = 'status-clean';
+                    statusText = 'CLEAN';
+                } else {
+                    const remaining = duration - elapsed;
+                    const hours = Math.floor(remaining / (60 * 60 * 1000));
+                    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                    timerHTML = `<div class="section-timer">⏱️ Cleaning: ${hours}h ${minutes}m remaining</div>`;
+                }
+            }
+            
+            if (sectionState.status === 'repairing' && sectionState.repairStart) {
+                const elapsed = now - sectionState.repairStart;
+                const duration = 72 * 60 * 60 * 1000; // 72 hours in milliseconds
+                
+                if (elapsed >= duration) {
+                    // Repair complete
+                    sectionState.status = 'operational';
+                    sectionState.repairStart = null;
+                    
+                    statusClass = 'status-operational';
+                    statusText = 'OPERATIONAL';
+                } else {
+                    const remaining = duration - elapsed;
+                    const hours = Math.floor(remaining / (60 * 60 * 1000));
+                    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                    timerHTML = `<div class="section-timer">⏱️ Repairing: ${hours}h ${minutes}m remaining</div>`;
+                }
+            }
+            
+            return `
+                <span class="status-indicator ${statusClass}">${statusText}</span>
+                ${timerHTML}
+            `;
+        }
+
+        function getSectionActionsHTML(sectionId) {
+            const sectionState = gameState.sectionStates[sectionId];
+            const costs = getSectionRepairCost(sectionId);
+            
+            switch (sectionState.status) {
+                case 'damaged':
+                    return `<button class="section-btn" onclick="startCleaning('${sectionId}')">🧹 Clean Section</button>`;
+                
+                case 'clean':
+                    const costDisplay = Object.entries(costs).map(([resource, amount]) => 
+                        `${resourceIcons[resource]} ${amount}`
+                    ).join(' ');
+                    const canAfford = canAffordRepair(costs);
+                    
+                    return `
+                        <button class="section-btn" onclick="startRepair('${sectionId}')" ${!canAfford ? 'disabled' : ''}>
+                            🔧 Repair Section
+                        </button>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                            Cost: ${costDisplay}
+                        </div>
+                    `;
+                
+                default:
+                    return '';
+            }
+        }
+
+        function getPowerIndicatorHTML(sectionId) {
+            const sectionState = gameState.sectionStates[sectionId];
+            
+            if (sectionState.status === 'operational') {
+                if (sectionId === 'luminarium') {
+                    return `<div class="power-indicator power-generation">⚡ +50 Power Generation</div>`;
+                } else {
+                    return `<div class="power-indicator power-draw">⚡ -10 Power Draw</div>`;
+                }
+            }
+            
+            return '';
+        }
+
+        function grantCleaningRewards() {
+            const rewardTypes = ['celestial-silver', 'runic-shards', 'divine-essence'];
+            const randomType = rewardTypes[Math.floor(Math.random() * rewardTypes.length)];
+            const amount = Math.floor(Math.random() * 3) + 1; // 1-3
+            
+            gameState.resources[randomType] += amount;
+            document.getElementById(randomType).textContent = gameState.resources[randomType];
+            document.getElementById(randomType + '-input').value = gameState.resources[randomType];
+            
+            alert(`Cleaning complete! Found ${amount} ${resourceIcons[randomType]} ${randomType.replace('-', ' ')}`);
+            updateAllUpgradeStates();
+            saveGameState();
+        }
+
+        // Timer Update System
+        function updateTimers() {
+            // Update section timers
+            Object.keys(gameState.sectionStates).forEach(sectionId => {
+                updateSectionDisplay(sectionId);
+            });
+            
+            // Update mission timers
+            renderMissions();
+            renderPlayerMissions();
+            
+            // Update power level based on operational sections
+            updatePowerLevel();
+        }
+
+        // Override power level calculation to include section power
+        function updatePowerLevel() {
+            let basePower = gameState.resources['celestial-power'];
+            
+            // Add/subtract power from operational sections
+            Object.keys(gameState.sectionStates).forEach(sectionId => {
+                const sectionState = gameState.sectionStates[sectionId];
+                if (sectionState.status === 'operational') {
+                    if (sectionId === 'luminarium') {
+                        basePower += 50; // Luminarium generates power
+                    } else {
+                        basePower -= 10; // Other sections consume power
+                    }
+                }
+            });
+            
+            const powerPercent = Math.min(100, Math.max(0, (basePower / 2000) * 100));
+            const powerElement = document.getElementById('power-level');
+            if (powerElement) {
+                powerElement.textContent = Math.round(powerPercent) + '%';
+                
+                // Color coding based on power level
+                if (powerPercent < 25) {
+                    powerElement.style.color = 'var(--red)';
+                } else if (powerPercent < 50) {
+                    powerElement.style.color = 'var(--gold)';
+                } else {
+                    powerElement.style.color = 'var(--green)';
+                }
             }
         }
 
@@ -1957,10 +2564,29 @@ function resetSection() {
                     ];
                 }
                 
+                // Ensure section states exist for backwards compatibility
+                if (!gameState.sectionStates) {
+                    gameState.sectionStates = {
+                        luminarium: { status: 'damaged', cleanStart: null, repairStart: null },
+                        sanctum: { status: 'damaged', cleanStart: null, repairStart: null },
+                        wards: { status: 'damaged', cleanStart: null, repairStart: null },
+                        throne: { status: 'damaged', cleanStart: null, repairStart: null },
+                        gateway: { status: 'damaged', cleanStart: null, repairStart: null },
+                        fountain: { status: 'damaged', cleanStart: null, repairStart: null }
+                    };
+                }
+                
                 // Update mission format for backwards compatibility
                 gameState.missions.forEach(mission => {
                     if (!mission.requirements) {
                         mission.requirements = { skill: 0, stealth: 0, combat: 0, tech: 0, social: 0, will: 0 };
+                    }
+                    if (!mission.duration) {
+                        mission.duration = 24;
+                    }
+                    if (!mission.assignedTo) {
+                        mission.assignedTo = null;
+                        mission.assignedAt = null;
                     }
                 });
                 
@@ -1994,8 +2620,22 @@ function resetSection() {
                                 <span class="progress-text">${completedUpgrades}/${totalUpgrades}</span>
                             </div>
                         </div>
+                        
+                        <!-- Section Status and Actions -->
+                        <div class="section-status">
+                            ${getSectionStatusHTML(sectionId)}
+                        </div>
+                        <div class="section-actions">
+                            ${getSectionActionsHTML(sectionId)}
+                        </div>
+                        <div class="power-indicator">
+                            ${getPowerIndicatorHTML(sectionId)}
+                        </div>
+                        
                         <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">${section.description}</p>
-                        <div class="paths-container">
+                        
+                        <!-- Only show upgrades if section is operational -->
+                        <div class="paths-container" ${gameState.sectionStates[sectionId].status !== 'operational' ? 'style="opacity: 0.5; pointer-events: none;"' : ''}>
                             ${Object.keys(section.paths).map(pathType => `
                                 <div class="path ${pathType}" id="${sectionId}-${pathType}">
                                     <div class="path-header" onclick="togglePath('${sectionId}', '${pathType}')">
