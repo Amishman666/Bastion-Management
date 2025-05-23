@@ -1,0 +1,282 @@
+<!-- components/navigation.html - Top Navigation Component -->
+<div class="nav-content">
+    <div class="nav-title">
+        <i class="fas fa-fortress" aria-hidden="true"></i> 
+        <span>THE BASTION</span>
+    </div>
+    
+    <div class="nav-controls">
+        <div class="user-info">
+            <div class="user-details">
+                <span id="currentUser" class="user-name">Player Name</span>
+                <span id="userRole" class="role-badge role-player">Player</span>
+            </div>
+            
+            <!-- Campaign Status Indicator -->
+            <div class="campaign-status" id="campaignStatus">
+                <div class="status-indicator" title="Campaign Status">
+                    <i class="fas fa-circle status-icon" aria-hidden="true"></i>
+                    <span class="status-text">Online</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions Menu -->
+        <div class="quick-actions-menu">
+            <button class="quick-action-btn" id="saveBtn" onclick="BastionApp.saveGameState()" title="Save Game State">
+                <i class="fas fa-save" aria-hidden="true"></i>
+                <span class="sr-only">Save Game</span>
+            </button>
+            
+            <button class="quick-action-btn" id="settingsBtn" onclick="toggleSettings()" title="Settings">
+                <i class="fas fa-cog" aria-hidden="true"></i>
+                <span class="sr-only">Settings</span>
+            </button>
+            
+            <button class="quick-action-btn" id="helpBtn" onclick="toggleHelp()" title="Help">
+                <i class="fas fa-question-circle" aria-hidden="true"></i>
+                <span class="sr-only">Help</span>
+            </button>
+        </div>
+        
+        <!-- Logout Button -->
+        <button class="logout-btn" onclick="BastionApp.logout()" title="Logout">
+            <i class="fas fa-sign-out-alt" aria-hidden="true"></i> 
+            <span>Logout</span>
+        </button>
+    </div>
+</div>
+
+<!-- Settings Dropdown (Hidden by default) -->
+<div class="settings-dropdown" id="settingsDropdown" style="display: none;">
+    <div class="dropdown-content">
+        <div class="dropdown-header">
+            <h3>Settings</h3>
+            <button class="close-btn" onclick="toggleSettings()">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">
+                <input type="checkbox" id="autoSave" checked>
+                <span>Auto-save every 30 seconds</span>
+            </label>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">
+                <input type="checkbox" id="soundEffects">
+                <span>Sound effects</span>
+            </label>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">
+                <input type="checkbox" id="animations" checked>
+                <span>Animations</span>
+            </label>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Theme</label>
+            <select id="themeSelect" class="setting-select">
+                <option value="dark">Dark (Default)</option>
+                <option value="light">Light</option>
+                <option value="high-contrast">High Contrast</option>
+            </select>
+        </div>
+        
+        <div class="dropdown-actions">
+            <button class="setting-btn" onclick="exportSettings()">Export Settings</button>
+            <button class="setting-btn" onclick="resetSettings()">Reset to Default</button>
+        </div>
+    </div>
+</div>
+
+<!-- Help Dropdown (Hidden by default) -->
+<div class="help-dropdown" id="helpDropdown" style="display: none;">
+    <div class="dropdown-content">
+        <div class="dropdown-header">
+            <h3>Quick Help</h3>
+            <button class="close-btn" onclick="toggleHelp()">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        
+        <div class="help-section">
+            <h4>Resources</h4>
+            <ul class="help-list">
+                <li><strong>⚡ Celestial Power:</strong> Main energy source, consumed by repairs</li>
+                <li><strong>🥈 Celestial Silver:</strong> Currency for equipment and upgrades</li>
+                <li><strong>💎 Runic Shards:</strong> Rare materials for advanced upgrades</li>
+                <li><strong>✨ Divine Essence:</strong> Sacred energy for spiritual upgrades</li>
+                <li><strong>🔬 Tech Expertise:</strong> Calculated from active NPCs</li>
+            </ul>
+        </div>
+        
+        <div class="help-section">
+            <h4>Section States</h4>
+            <ul class="help-list">
+                <li><strong class="status-damaged">Damaged:</strong> Needs cleaning (72 hours)</li>
+                <li><strong class="status-cleaning">Cleaning:</strong> Work in progress</li>
+                <li><strong class="status-cleaned">Cleaned:</strong> Ready for repair</li>
+                <li><strong class="status-online">Online:</strong> Fully operational</li>
+            </ul>
+        </div>
+        
+        <div class="help-section">
+            <h4>Keyboard Shortcuts</h4>
+            <ul class="help-list">
+                <li><kbd>Ctrl + S</kbd> - Save game state</li>
+                <li><kbd>Ctrl + ?</kbd> - Toggle help</li>
+                <li><kbd>Esc</kbd> - Close modals/dropdowns</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+// Navigation-specific JavaScript
+function toggleSettings() {
+    const dropdown = document.getElementById('settingsDropdown');
+    const helpDropdown = document.getElementById('helpDropdown');
+    
+    // Close help if open
+    helpDropdown.style.display = 'none';
+    
+    // Toggle settings
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleHelp() {
+    const dropdown = document.getElementById('helpDropdown');
+    const settingsDropdown = document.getElementById('settingsDropdown');
+    
+    // Close settings if open
+    settingsDropdown.style.display = 'none';
+    
+    // Toggle help
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+function exportSettings() {
+    const settings = {
+        autoSave: document.getElementById('autoSave').checked,
+        soundEffects: document.getElementById('soundEffects').checked,
+        animations: document.getElementById('animations').checked,
+        theme: document.getElementById('themeSelect').value
+    };
+    
+    const dataStr = JSON.stringify(settings, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'bastion-settings.json';
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+function resetSettings() {
+    if (confirm('Reset all settings to default values?')) {
+        document.getElementById('autoSave').checked = true;
+        document.getElementById('soundEffects').checked = false;
+        document.getElementById('animations').checked = true;
+        document.getElementById('themeSelect').value = 'dark';
+        
+        // Apply settings
+        applySettings();
+    }
+}
+
+function applySettings() {
+    const theme = document.getElementById('themeSelect').value;
+    const animations = document.getElementById('animations').checked;
+    
+    // Apply theme
+    document.documentElement.setAttribute('data-theme', theme);
+    
+    // Apply animation preference
+    if (!animations) {
+        document.documentElement.style.setProperty('--transition-fast', '0s');
+        document.documentElement.style.setProperty('--transition-base', '0s');
+        document.documentElement.style.setProperty('--transition-slow', '0s');
+    } else {
+        document.documentElement.style.removeProperty('--transition-fast');
+        document.documentElement.style.removeProperty('--transition-base');
+        document.documentElement.style.removeProperty('--transition-slow');
+    }
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+    const settingsDropdown = document.getElementById('settingsDropdown');
+    const helpDropdown = document.getElementById('helpDropdown');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const helpBtn = document.getElementById('helpBtn');
+    
+    if (!settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+        settingsDropdown.style.display = 'none';
+    }
+    
+    if (!helpBtn.contains(e.target) && !helpDropdown.contains(e.target)) {
+        helpDropdown.style.display = 'none';
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        if (window.BastionApp) {
+            window.BastionApp.saveGameState();
+        }
+    }
+    
+    if (e.ctrlKey && e.key === '?') {
+        e.preventDefault();
+        toggleHelp();
+    }
+    
+    if (e.key === 'Escape') {
+        document.getElementById('settingsDropdown').style.display = 'none';
+        document.getElementById('helpDropdown').style.display = 'none';
+    }
+});
+
+// Initialize settings on load
+document.addEventListener('DOMContentLoaded', function() {
+    // Load saved settings from localStorage
+    const savedSettings = localStorage.getItem('bastion-settings');
+    if (savedSettings) {
+        try {
+            const settings = JSON.parse(savedSettings);
+            document.getElementById('autoSave').checked = settings.autoSave ?? true;
+            document.getElementById('soundEffects').checked = settings.soundEffects ?? false;
+            document.getElementById('animations').checked = settings.animations ?? true;
+            document.getElementById('themeSelect').value = settings.theme ?? 'dark';
+        } catch (e) {
+            console.warn('Failed to load saved settings:', e);
+        }
+    }
+    
+    // Apply current settings
+    applySettings();
+    
+    // Save settings when changed
+    document.querySelectorAll('#settingsDropdown input, #settingsDropdown select').forEach(element => {
+        element.addEventListener('change', function() {
+            const settings = {
+                autoSave: document.getElementById('autoSave').checked,
+                soundEffects: document.getElementById('soundEffects').checked,
+                animations: document.getElementById('animations').checked,
+                theme: document.getElementById('themeSelect').value
+            };
+            
+            localStorage.setItem('bastion-settings', JSON.stringify(settings));
+            applySettings();
+        });
+    });
+});
+</script>
