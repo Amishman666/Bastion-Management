@@ -1,4 +1,22 @@
-<!DOCTYPE html>
+function resetSection() {
+            if (currentRole !== 'gm') return;
+            alert('Section reset functionality - coming soon');
+        }
+
+        function triggerEvent() {
+            if (currentRole !== 'gm') return;
+            alert('Event trigger functionality - coming soon');
+        }
+
+        function exportData() {
+            if (currentRole !== 'gm') return;
+            exportGameData();
+        }
+
+        function importGameData() {
+            if (currentRole !== 'gm') return;
+            alert('Import functionality - coming soon');
+        }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -879,9 +897,9 @@
                 <button type="submit" class="login-btn">Access Bastion</button>
             </form>
             <div class="login-help">
-                <strong>Default Credentials:</strong><br>
-                Player: jon / bastion2024<br>
-                GM: gm / gmbastion2024
+                <strong>Player Access:</strong><br>
+                Username: jon<br>
+                Password: bastion2024
             </div>
         </div>
     </div>
@@ -973,7 +991,7 @@
                         </div>
                         <div class="resource-amount">
                             <span class="resource-value" id="celestial-power">1250</span>
-                            <input type="number" class="resource-input" id="celestial-power-input" value="1250" onchange="updateResource('celestial-power', this.value)">
+                            <input type="number" class="resource-input gm-only" id="celestial-power-input" value="1250" onchange="updateResource('celestial-power', this.value)">
                         </div>
                     </div>
                     <div class="resource-item">
@@ -983,7 +1001,7 @@
                         </div>
                         <div class="resource-amount">
                             <span class="resource-value" id="celestial-silver">85</span>
-                            <input type="number" class="resource-input" id="celestial-silver-input" value="85" onchange="updateResource('celestial-silver', this.value)">
+                            <input type="number" class="resource-input gm-only" id="celestial-silver-input" value="85" onchange="updateResource('celestial-silver', this.value)">
                         </div>
                     </div>
                     <div class="resource-item">
@@ -993,7 +1011,7 @@
                         </div>
                         <div class="resource-amount">
                             <span class="resource-value" id="runic-shards">12</span>
-                            <input type="number" class="resource-input" id="runic-shards-input" value="12" onchange="updateResource('runic-shards', this.value)">
+                            <input type="number" class="resource-input gm-only" id="runic-shards-input" value="12" onchange="updateResource('runic-shards', this.value)">
                         </div>
                     </div>
                     <div class="resource-item">
@@ -1003,7 +1021,7 @@
                         </div>
                         <div class="resource-amount">
                             <span class="resource-value" id="divine-essence">3</span>
-                            <input type="number" class="resource-input" id="divine-essence-input" value="3" onchange="updateResource('divine-essence', this.value)">
+                            <input type="number" class="resource-input gm-only" id="divine-essence-input" value="3" onchange="updateResource('divine-essence', this.value)">
                         </div>
                     </div>
                     <div class="resource-item">
@@ -1013,7 +1031,7 @@
                         </div>
                         <div class="resource-amount">
                             <span class="resource-value" id="technical-expertise">5</span>
-                            <input type="number" class="resource-input" id="technical-expertise-input" value="5" onchange="updateResource('technical-expertise', this.value)">
+                            <input type="number" class="resource-input gm-only" id="technical-expertise-input" value="5" onchange="updateResource('technical-expertise', this.value)">
                         </div>
                     </div>
                 </div>
@@ -1458,6 +1476,12 @@
 
         // Resource Management
         function updateResource(resourceId, value) {
+            // Only allow GMs to update resources
+            if (currentRole !== 'gm') {
+                console.log('Access denied: Only GMs can modify resources');
+                return;
+            }
+            
             gameState.resources[resourceId] = parseInt(value) || 0;
             document.getElementById(resourceId).textContent = gameState.resources[resourceId];
             updateAllUpgradeStates();
@@ -1557,6 +1581,8 @@
 
         // Mission Management
         function createMission() {
+            if (currentRole !== 'gm') return;
+            
             const title = document.getElementById('missionTitle').value;
             const description = document.getElementById('missionDescription').value;
             const difficulty = document.getElementById('missionDifficulty').value;
@@ -1640,6 +1666,8 @@
         }
 
         function deleteMission(missionId) {
+            if (currentRole !== 'gm') return;
+            
             if (confirm('Are you sure you want to delete this mission?')) {
                 gameState.missions = gameState.missions.filter(m => m.id !== missionId);
                 renderMissions();
@@ -1648,6 +1676,8 @@
         }
 
         function editMission(missionId) {
+            if (currentRole !== 'gm') return;
+            
             const mission = gameState.missions.find(m => m.id === missionId);
             if (mission) {
                 document.getElementById('missionTitle').value = mission.title;
@@ -1672,6 +1702,8 @@
 
         // NPC Management
         function createNPC() {
+            if (currentRole !== 'gm') return;
+            
             const name = document.getElementById('npcName').value;
             const description = document.getElementById('npcDescription').value;
             const image = document.getElementById('npcImage').value;
@@ -1766,6 +1798,8 @@
         }
 
         function deleteNPC(npcId) {
+            if (currentRole !== 'gm') return;
+            
             if (confirm('Are you sure you want to delete this NPC?')) {
                 gameState.npcs = gameState.npcs.filter(n => n.id !== npcId);
                 renderNPCs();
@@ -1774,6 +1808,8 @@
         }
 
         function editNPC(npcId) {
+            if (currentRole !== 'gm') return;
+            
             const npc = gameState.npcs.find(n => n.id === npcId);
             if (npc) {
                 document.getElementById('npcName').value = npc.name;
@@ -1794,6 +1830,8 @@
 
         // GM Administrative Functions
         function addResources() {
+            if (currentRole !== 'gm') return;
+            
             const amount = prompt('Enter amount to add to all resources:', '100');
             if (amount) {
                 const num = parseInt(amount);
@@ -1809,6 +1847,8 @@
         }
 
         function maxAllResources() {
+            if (currentRole !== 'gm') return;
+            
             Object.keys(gameState.resources).forEach(resource => {
                 gameState.resources[resource] = 9999;
                 document.getElementById(resource).textContent = gameState.resources[resource];
@@ -1820,6 +1860,8 @@
         }
 
         function zeroAllResources() {
+            if (currentRole !== 'gm') return;
+            
             if (confirm('Are you sure you want to reset all resources to zero?')) {
                 Object.keys(gameState.resources).forEach(resource => {
                     gameState.resources[resource] = 0;
@@ -1833,6 +1875,8 @@
         }
 
         function unlockAllUpgrades() {
+            if (currentRole !== 'gm') return;
+            
             if (confirm('Are you sure you want to unlock all upgrades?')) {
                 Object.keys(sections).forEach(sectionId => {
                     Object.keys(sections[sectionId].paths).forEach(pathType => {
@@ -1845,6 +1889,8 @@
         }
 
         function resetAllUpgrades() {
+            if (currentRole !== 'gm') return;
+            
             if (confirm('Are you sure you want to reset all upgrades?')) {
                 Object.keys(gameState.upgrades).forEach(sectionId => {
                     Object.keys(gameState.upgrades[sectionId]).forEach(pathType => {
@@ -1857,6 +1903,8 @@
         }
 
         function exportGameData() {
+            if (currentRole !== 'gm') return;
+            
             const data = JSON.stringify(gameState, null, 2);
             const blob = new Blob([data], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -1868,6 +1916,8 @@
         }
 
         function resetGame() {
+            if (currentRole !== 'gm') return;
+            
             if (confirm('Are you sure you want to reset the entire game? This cannot be undone!')) {
                 localStorage.removeItem('bastion-game-state');
                 location.reload();
