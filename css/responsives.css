@@ -1,0 +1,170 @@
+/* Responsive Design for The Bastion */
+
+/* Tablet Styles */
+@media (max-width: 1024px) {
+    .main-grid {
+        grid-template-columns: 300px 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .main-content {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .container {
+        padding: var(--spacing-md);
+    }
+    
+    .main-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .status-bar {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: var(--spacing-sm);
+    }
+    
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .header {
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .sidebar {
+        order: 2;
+    }
+    
+    .main-content {
+        order: 1;
+    }
+    
+    .section-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .upgrade-item {
+        padding: var(--spacing-md);
+        margin: 0 var(--spacing-sm) var(--spacing-sm) var(--spacing-sm);
+    }
+    
+    .upgrade-footer {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        align-items: stretch;
+    }
+    
+    .upgrade-cost {
+        justify-content: center;
+    }
+}
+
+/* Small Mobile Styles */
+@media (max-width: 480px) {
+    .container {
+        padding: var(--spacing-sm);
+    }
+    
+    .header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .status-bar {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .status-item {
+        padding: var(--spacing-sm);
+    }
+    
+    .status-item .icon {
+        font-size: 1.2rem;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .status-item .label {
+        font-size: 0.8rem;
+    }
+    
+    .status-item .value {
+        font-size: 1.1rem;
+    }
+    
+    .resource-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+        padding: var(--spacing-sm) 0;
+    }
+    
+    .resource-amount {
+        align-items: flex-start;
+        width: 100%;
+    }
+    
+    .resource-input {
+        width: 100px;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+    }
+    
+    .path-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .path-name {
+        font-size: 1rem;
+    }
+    
+    .upgrade-name {
+        font-size: 1rem;
+    }
+    
+    .upgrade-description {
+        font-size: 0.9rem;
+    }
+    
+    .efficiency-bonus {
+        padding: var(--spacing-md);
+    }
+    
+    .efficiency-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* Landscape Mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .header {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .main-grid {
+        grid-template-columns: 280px 1fr;
+    }
+    
+    .sidebar {
+        order: 1;
+    }
+    
+    .main-content {
+        order: 2;
+    }
+}
