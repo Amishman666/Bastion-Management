@@ -1076,6 +1076,9 @@
             <button class="tab-btn player-only" onclick="switchTab('missions')">
                 <i class="fas fa-scroll"></i> Mission Board
             </button>
+            <button class="tab-btn player-only" onclick="switchTab('sync')">
+                <i class="fas fa-sync"></i> Sync Game
+            </button>
             <button class="tab-btn gm-only" onclick="switchTab('missions')">
                 <i class="fas fa-tasks"></i> Mission Control
             </button>
@@ -1089,6 +1092,20 @@
 
         <!-- Dashboard Tab -->
         <div id="dashboardTab" class="tab-content active">
+            <!-- Sync Reminder for Players -->
+            <div class="player-only" style="background: rgba(255, 215, 0, 0.1); border: 1px solid var(--gold); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-info-circle" style="color: var(--gold);"></i>
+                    <span style="color: var(--gold); font-weight: 600;">Player Reminder:</span>
+                    <span style="color: var(--text-secondary);">
+                        Make sure to sync with your GM regularly to get the latest missions and updates!
+                    </span>
+                    <button class="gm-btn" onclick="switchTab('sync')" style="margin-left: auto;">
+                        <i class="fas fa-sync"></i> Sync Now
+                    </button>
+                </div>
+            </div>
+
             <!-- Status Bar -->
             <div class="status-bar">
                 <div class="status-item">
@@ -1118,6 +1135,9 @@
                 <h3><i class="fas fa-crown"></i> GM Quick Actions</h3>
                 <button class="gm-btn" onclick="addResources()">
                     <i class="fas fa-plus"></i> Add Resources
+                </button>
+                <button class="gm-btn" onclick="generateSyncCode()">
+                    <i class="fas fa-share"></i> Share Game State
                 </button>
                 <button class="gm-btn" onclick="exportGameData()">
                     <i class="fas fa-download"></i> Export Data
@@ -1348,6 +1368,18 @@
         <div id="adminTab" class="tab-content gm-only">
             <h2><i class="fas fa-cogs"></i> System Administration</h2>
             <div class="gm-controls">
+                <h3>Game Sync</h3>
+                <button class="gm-btn" onclick="generateSyncCode()">
+                    <i class="fas fa-share"></i> Generate Sync Code
+                </button>
+                <div id="sync-code-display" style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 6px; display: none;">
+                    <p style="margin-bottom: 10px; color: var(--gold);">Share this code with players:</p>
+                    <input type="text" id="sync-code-text" readonly style="width: 100%; padding: 8px; background: var(--primary-bg); color: var(--text-primary); border: 1px solid var(--border); border-radius: 4px; font-family: monospace;">
+                    <button class="gm-btn" onclick="copySyncCode()" style="margin-top: 10px;">
+                        <i class="fas fa-copy"></i> Copy Code
+                    </button>
+                </div>
+                
                 <h3>Data Management</h3>
                 <button class="gm-btn" onclick="exportGameData()">
                     <i class="fas fa-download"></i> Export Game Data
@@ -1371,6 +1403,38 @@
                 <button class="gm-btn" onclick="resetAllUpgrades()">
                     <i class="fas fa-lock"></i> Reset All Upgrades
                 </button>
+            </div>
+        </div>
+
+        <!-- Player Sync Tab -->
+        <div id="syncTab" class="tab-content player-only">
+            <div class="mission-management">
+                <h2><i class="fas fa-sync"></i> Sync Game State</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Enter the sync code provided by your GM to get the latest game state including missions, NPCs, and section status.
+                </p>
+                
+                <div class="form-group">
+                    <label class="form-label">Sync Code from GM</label>
+                    <textarea class="form-input" id="sync-code-input" rows="4" placeholder="Paste the sync code here..."></textarea>
+                </div>
+                
+                <button class="login-btn" onclick="applySyncCode()">
+                    <i class="fas fa-download"></i> Sync Game State
+                </button>
+                
+                <div id="sync-status" style="margin-top: 15px; display: none;"></div>
+                
+                <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <h4 style="color: var(--gold); margin-bottom: 10px;">How to Sync:</h4>
+                    <ol style="color: var(--text-secondary); line-height: 1.6;">
+                        <li>Ask your GM to generate a sync code</li>
+                        <li>Copy the code they provide</li>
+                        <li>Paste it in the box above</li>
+                        <li>Click "Sync Game State"</li>
+                        <li>Your game will update with the latest changes!</li>
+                    </ol>
+                </div>
             </div>
         </div>
     </div>
@@ -1636,6 +1700,13 @@
             // Update tab content
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Special handling for certain tabs
+            if (tabName === 'missions' && currentRole === 'player') {
+                renderPlayerMissions();
+            } else if (tabName === 'missions' && currentRole === 'gm') {
+                renderMissions();
+            }
         }
 
         // Resource Management
@@ -2504,9 +2575,149 @@
             }
         }
 
+        // Sync System Functions
+        function generateSyncCode() {
+            if (currentRole !== 'gm') return;
+            
+            const syncData = {
+                timestamp: Date.now(),
+                gameState: gameState
+            };
+            
+            const syncCode = btoa(JSON.stringify(syncData));
+            document.getElementById('sync-code-text').value = syncCode;
+            document.getElementById('sync-code-display').style.display = 'block';
+        }
+
+        function copySyncCode() {
+            const syncCodeElement = document.getElementById('sync-code-text');
+            syncCodeElement.select();
+            syncCodeElement.setSelectionRange(0, 99999); // For mobile devices
+            
+            navigator.clipboard.writeText(syncCodeElement.value).then(() => {
+                alert('Sync code copied to clipboard! Share this with your players.');
+            }).catch(() => {
+                // Fallback for older browsers
+                document.execCommand('copy');
+                alert('Sync code copied to clipboard! Share this with your players.');
+            });
+        }
+
+        function applySyncCode() {
+            const syncCodeInput = document.getElementById('sync-code-input');
+            const statusDiv = document.getElementById('sync-status');
+            
+            if (!syncCodeInput.value.trim()) {
+                showSyncStatus('Please enter a sync code.', 'error');
+                return;
+            }
+            
+            try {
+                const syncData = JSON.parse(atob(syncCodeInput.value.trim()));
+                
+                if (!syncData.gameState || !syncData.timestamp) {
+                    throw new Error('Invalid sync code format');
+                }
+                
+                // Apply the synced game state
+                Object.assign(gameState, syncData.gameState);
+                
+                // Update all displays
+                updateAllDisplaysAfterSync();
+                
+                // Save the new state
+                saveGameState();
+                
+                // Clear the input
+                syncCodeInput.value = '';
+                
+                const syncTime = new Date(syncData.timestamp).toLocaleString();
+                showSyncStatus(`✅ Game synced successfully! Data from: ${syncTime}`, 'success');
+                
+            } catch (error) {
+                console.error('Sync error:', error);
+                showSyncStatus('❌ Invalid sync code. Please check the code and try again.', 'error');
+            }
+        }
+
+        function showSyncStatus(message, type) {
+            const statusDiv = document.getElementById('sync-status');
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = `
+                <div style="padding: 10px; border-radius: 6px; background: ${type === 'success' ? 'rgba(0, 255, 136, 0.2)' : 'rgba(255, 51, 102, 0.2)'}; border: 1px solid ${type === 'success' ? 'var(--green)' : 'var(--red)'}; color: ${type === 'success' ? 'var(--green)' : 'var(--red)'};">
+                    ${message}
+                </div>
+            `;
+            
+            // Hide status after 5 seconds
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function updateAllDisplaysAfterSync() {
+            // Update resource displays
+            Object.keys(gameState.resources).forEach(resource => {
+                const element = document.getElementById(resource);
+                const inputElement = document.getElementById(resource + '-input');
+                if (element) element.textContent = gameState.resources[resource];
+                if (inputElement) inputElement.value = gameState.resources[resource];
+            });
+            
+            // Re-render all sections
+            initializeDashboard();
+            
+            // Re-render missions and NPCs
+            renderMissions();
+            renderNPCs();
+            renderPlayerMissions();
+            
+            // Update power level
+            updatePowerLevel();
+            
+            // Update all upgrade states
+            updateAllUpgradeStates();
+        }
+
         // Data Persistence
         function saveGameState() {
             localStorage.setItem('bastion-game-state', JSON.stringify(gameState));
+            
+            // Show notification for GM that changes were made
+            if (currentRole === 'gm') {
+                showGMSaveNotification();
+            }
+        }
+
+        function showGMSaveNotification() {
+            // Create or update a small notification
+            let notification = document.getElementById('gm-save-notification');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'gm-save-notification';
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 70px;
+                    right: 20px;
+                    background: rgba(255, 215, 0, 0.2);
+                    border: 1px solid var(--gold);
+                    border-radius: 6px;
+                    padding: 8px 12px;
+                    font-size: 0.8rem;
+                    color: var(--gold);
+                    z-index: 1000;
+                    transition: opacity 0.3s ease;
+                `;
+                document.body.appendChild(notification);
+            }
+            
+            notification.innerHTML = '<i class="fas fa-save"></i> Changes saved! Players need to sync.';
+            notification.style.opacity = '1';
+            
+            // Fade out after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+            }, 3000);
         }
 
         function loadGameState() {
