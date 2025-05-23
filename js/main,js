@@ -1,0 +1,252 @@
+// main.js - Main application entry point
+import { AuthManager } from './auth.js';
+import { GameState } from './gameState.js';
+import { UIManager } from './ui.js';
+import { ResourceManager } from './resources.js';
+import { MissionManager } from './missions.js';
+import { NPCManager } from './npcs.js';
+import { SectionManager } from './sections.js';
+import { TimerManager } from './timers.js';
+
+class BastionApp {
+    constructor() {
+        this.currentUser = null;
+        this.userRole = null;
+        
+        // Initialize managers
+        this.auth = new AuthManager();
+        this.gameState = new GameState();
+        this.ui = new UIManager();
+        this.resources = new ResourceManager(this.gameState);
+        this.missions = new MissionManager(this.gameState);
+        this.npcs = new NPCManager(this.gameState);
+        this.sections = new SectionManager(this.gameState);
+        this.timers = new TimerManager(this.gameState);
+        
+        this.init();
+    }
+
+    async init() {
+        try {
+            // Load game data
+            await this.loadGameData();
+            
+            // Load UI components
+            await this.loadUIComponents();
+            
+            // Setup event listeners
+            this.setupEventListeners();
+            
+            // Initialize UI
+            this.ui.showNotification('Bastion Management System initialized');
+            
+            // Start background processes
+            this.timers.startTimerUpdates();
+            
+            console.log('✅ Bastion app initialized successfully');
+        } catch (error) {
+            console.error('❌ Failed to initialize Bastion app:', error);
+            this.ui.showNotification('Failed to initialize application', 'error');
+        }
+    }
+
+    async loadGameData() {
+        try {
+            // Load configuration and game data
+            const [sectionsData, missionsData, npcsData, itemsData, config] = await Promise.all([
+                fetch('data/sections.json').then(r => r.json()),
+                fetch('data/missions.json').then(r => r.json()),
+                fetch('data/npcs.json').then(r => r.json()),
+                fetch('data/items.json').then(r => r.json()),
+                fetch('data/config.json').then(r => r.json())
+            ]);
+
+            // Initialize game state with loaded data
+            this.gameState.initializeData({
+                sections: sectionsData,
+                missions: missionsData,
+                npcs: npcsData,
+                items: itemsData,
+                config: config
+            });
+            
+            console.log('✅ Game data loaded successfully');
+        } catch (error) {
+            console.error('❌ Failed to load game data:', error);
+            // Fallback to hardcoded data if files don't exist
+            this.gameState.initializeDefaultData();
+        }
+    }
+
+    async loadUIComponents() {
+        try {
+            // Load HTML components
+            const [loginHTML, gmDashboardHTML, playerDashboardHTML, navHTML] = await Promise.all([
+                fetch('components/login.html').then(r => r.text()),
+                fetch('components/gm-dashboard.html').then(r => r.text()),
+                fetch('components/player-dashboard.html').then(r => r.text()),
+                fetch('components/navigation.html').then(r => r.text())
+            ]);
+
+            // Insert components into their containers
+            document.getElementById('loginScreen').innerHTML = loginHTML;
+            document.getElementById('gmDashboard').innerHTML = gmDashboardHTML;
+            document.getElementById('playerDashboard').innerHTML = playerDashboardHTML;
+            document.getElementById('topNav').innerHTML = navHTML;
+            
+            console.log('✅ UI components loaded successfully');
+        } catch (error) {
+            console.error('❌ Failed to load UI components:', error);
+            // Fallback to inline components
+            this.ui.createFallbackComponents();
+        }
+    }
+
+    setupEventListeners() {
+        // Authentication events
+        this.auth.onLogin = (username, role) => this.handleLogin(username, role);
+        this.auth.onLogout = () => this.handleLogout();
+        
+        // Game state events
+        this.gameState.onChange = (changes) => this.handleGameStateChange(changes);
+        
+        // Window events
+        window.addEventListener('beforeunload', () => this.saveGameState());
+        
+        // Focus username field when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const usernameField = document.getElementById('username');
+            if (usernameField) usernameField.focus();
+        });
+
+        console.log('✅ Event listeners setup complete');
+    }
+
+    handleLogin(username, role) {
+        this.currentUser = username;
+        this.userRole = role;
+        
+        // Update UI
+        this.ui.hideElement('loginScreen');
+        this.ui.showElement('mainApp');
+        this.ui.updateUserInfo(username, role);
+        
+        // Load appropriate dashboard
+        if (role === 'gm') {
+            this.loadGMDashboard();
+        } else {
+            this.loadPlayerDashboard();
+        }
+        
+        // Initialize sections
+        this.sections.initializeSections();
+        
+        // Show welcome message
+        this.ui.showNotification(`Welcome, ${username}!`);
+        this.gameState.logActivity(`${username} logged in as ${role}`);
+    }
+
+    handleLogout() {
+        // Save current state
+        this.saveGameState();
+        
+        // Reset user info
+        this.currentUser = null;
+        this.userRole = null;
+        
+        // Update UI
+        this.ui.showElement('loginScreen');
+        this.ui.hideElement('mainApp');
+        this.ui.hideElement('gmDashboard');
+        this.ui.hideElement('playerDashboard');
+    }
+
+    loadGMDashboard() {
+        this.ui.showElement('gmDashboard');
+        this.resources.updateGMResourceInputs();
+        this.npcs.updateNPCList();
+        this.sections.updateSectionManagement();
+        this.missions.updateActiveMissionsList();
+    }
+
+    loadPlayerDashboard() {
+        this.ui.showElement('playerDashboard');
+        this.resources.updateAllResourceDisplays();
+        this.sections.updatePlayerCleaningOptions();
+        this.missions.updatePlayerMissionOptions();
+        this.npcs.updatePlayerNPCList();
+    }
+
+    handleGameStateChange(changes) {
+        // Update UI based on what changed
+        if (changes.includes('resources')) {
+            this.resources.updateAllResourceDisplays();
+            this.sections.updateAllUpgradeStates();
+        }
+        
+        if (changes.includes('missions')) {
+            this.missions.updateMissionDisplay();
+        }
+        
+        if (changes.includes('npcs')) {
+            this.npcs.updateNPCList();
+            this.resources.calculateTechExpertise();
+        }
+        
+        if (changes.includes('sections')) {
+            this.sections.updateSectionDisplay();
+        }
+    }
+
+    saveGameState() {
+        try {
+            this.gameState.save();
+            console.log('✅ Game state saved');
+        } catch (error) {
+            console.error('❌ Failed to save game state:', error);
+        }
+    }
+
+    // Global methods that need to be accessible from HTML onclick handlers
+    setupGlobalMethods() {
+        // Make key methods available globally for onclick handlers
+        window.BastionApp = {
+            // Auth methods
+            login: (...args) => this.auth.login(...args),
+            logout: () => this.auth.logout(),
+            
+            // Resource methods
+            updateGlobalResource: (...args) => this.resources.updateGlobalResource(...args),
+            addDailyResources: () => this.resources.addDailyResources(),
+            resetResources: () => this.resources.resetResources(),
+            
+            // Mission methods
+            createEnhancedMission: () => this.missions.createEnhancedMission(),
+            resolveMissions: () => this.missions.resolveMissions(),
+            clearCompletedMissions: () => this.missions.clearCompletedMissions(),
+            
+            // NPC methods
+            createNPC: () => this.npcs.createNPC(),
+            quickCreateNPC: () => this.npcs.quickCreateNPC(),
+            removeSelectedNPC: () => this.npcs.removeSelectedNPC(),
+            
+            // Section methods
+            purchaseUpgrade: (...args) => this.sections.purchaseUpgrade(...args),
+            requestUpgrade: (...args) => this.sections.requestUpgrade(...args),
+            togglePath: (...args) => this.sections.togglePath(...args),
+            
+            // Utility methods
+            saveGameState: () => this.saveGameState(),
+            loadGameState: () => this.gameState.load(),
+            exportData: () => this.gameState.export()
+        };
+    }
+}
+
+// Initialize the application
+const app = new BastionApp();
+
+// Setup global methods for HTML onclick handlers
+app.setupGlobalMethods();
+
+export default app;
