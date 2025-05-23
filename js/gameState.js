@@ -1,33 +1,18 @@
-// gameState.js - Centralized game state management
+/**
+ * Game State Management for The Bastion
+ * Handles all persistent data and state changes
+ */
+
 export class GameState {
     constructor() {
-        this.state = this.getDefaultState();
-        this.listeners = [];
-        this.changeCallbacks = [];
-        
-        // Auto-save every 30 seconds
-        setInterval(() => this.autoSave(), 30000);
-    }
-
-    getDefaultState() {
-        return {
+        this.data = {
             resources: {
                 'celestial-power': 1250,
                 'celestial-silver': 85,
                 'runic-shards': 12,
                 'divine-essence': 3,
-                'technical-expertise': 0
+                'technical-expertise': 5
             },
-            sectionStates: {
-                luminarium: 'damaged',
-                sanctum: 'damaged',
-                wards: 'damaged',
-                throne: 'cleaned',
-                gateway: 'damaged',
-                fountain: 'online'
-            },
-            cleaningTimers: {},
-            missionAssignments: {},
             upgrades: {
                 luminarium: { research: [], offensive: [], defensive: [] },
                 sanctum: { research: [], offensive: [], defensive: [] },
@@ -36,284 +21,124 @@ export class GameState {
                 gateway: { research: [], offensive: [], defensive: [] },
                 fountain: { research: [], offensive: [], defensive: [] }
             },
-            npcs: [],
-            items: [],
-            missions: [],
-            sectionRepairCosts: {},
-            cleaningRewardRanges: {
-                'celestial-silver': { min: 10, max: 25 },
-                'runic-shards': { min: 1, max: 3 }
+            settings: {
+                autoSave: true,
+                soundEnabled: true,
+                theme: 'dark'
             },
-            players: ['Jon'],
-            activity: [],
-            totalCelestialPowerCapacity: 2000,
-            currentCelestialPowerDrain: 0,
-            lastSaved: Date.now(),
-            version: '1.0.0'
+            lastSaved: Date.now()
         };
+
+        this.eventListeners = {};
     }
 
-    // Initialize with data loaded from JSON files
-    initializeData(data) {
-        if (data.config) {
-            this.state = { ...this.state, ...data.config };
+    // Event system for cross-module communication
+    on(event, callback) {
+        if (!this.eventListeners[event]) {
+            this.eventListeners[event] = [];
         }
-        
-        if (data.npcs) {
-            this.state.npcs = data.npcs;
-        }
-        
-        if (data.items) {
-            this.state.items = data.items;
-        }
-        
-        if (data.missions) {
-            this.state.missions = data.missions;
-        }
-        
-        if (data.sections) {
-            // Process sections data for repair costs, etc.
-            this.processSectionsData(data.sections);
-        }
-        
-        this.triggerChange(['initialization']);
+        this.eventListeners[event].push(callback);
     }
 
-    // Fallback to hardcoded data
-    initializeDefaultData() {
-        console.log('⚠️ Using default hardcoded data');
-        
-        this.state.npcs = [
-            {
-                id: 1,
-                name: "Kade Vex",
-                title: "Ghost Operative",
-                skill: 3,
-                stealth: 4,
-                combat: 1,
-                tech: 2,
-                social: 1,
-                will: 3,
-                loyalty: 85,
-                injury: 0,
-                stress: 0,
-                rank: 1,
-                trait: "Silent Entry — Stealth missions ignore first 2 points of required threshold",
-                equipped_item: null,
-                status: 'available'
-            },
-            {
-                id: 2,
-                name: "Elena Cross",
-                title: "Tech Specialist",
-                skill: 4,
-                stealth: 2,
-                combat: 2,
-                tech: 5,
-                social: 3,
-                will: 4,
-                loyalty: 92,
-                injury: 0,
-                stress: 1,
-                rank: 2,
-                trait: "Data Mining — Automatically gains +1 Intel on successful Tech missions",
-                equipped_item: 1,
-                status: 'available'
-            }
-        ];
-
-        this.state.items = [
-            {
-                id: 1,
-                name: "Advanced Scanner",
-                type: "tech",
-                bonus: { tech: 2 },
-                description: "Grants +2 Tech for complex analysis missions",
-                rarity: "uncommon"
-            },
-            {
-                id: 2,
-                name: "Stealth Cloak",
-                type: "stealth",
-                bonus: { stealth: 1, will: 1 },
-                description: "Grants +1 Stealth and +1 Will, reduces detection chance",
-                rarity: "rare"
-            }
-        ];
-
-        this.state.missions = [
-            {
-                id: 1,
-                title: "Seraphim Archives Infiltration",
-                type: "Stealth",
-                description: "Infiltrate the Seraphim Council archives to steal divine encryption keys.",
-                rewards: {
-                    'celestial-silver': 100,
-                    'runic-shards': 2,
-                    'divine-essence': 1
-                },
-                status: "available",
-                duration: "3 days"
-            },
-            {
-                id: 2,
-                title: "Void Fragment Research",
-                type: "Research",
-                description: "Study corrupted void fragments to understand their energy patterns.",
-                rewards: {
-                    'celestial-power': 200,
-                    'runic-shards': 4,
-                    'divine-essence': 1
-                },
-                status: "available",
-                duration: "2 days"
-            }
-        ];
-
-        this.state.sectionRepairCosts = {
-            luminarium: { 'celestial-power': 200, 'celestial-silver': 50, 'runic-shards': 5 },
-            sanctum: { 'celestial-power': 150, 'celestial-silver': 40, 'divine-essence': 2 },
-            wards: { 'celestial-power': 180, 'celestial-silver': 60, 'runic-shards': 3 },
-            throne: { 'celestial-power': 120, 'celestial-silver': 30, 'technical-expertise': 3 },
-            gateway: { 'celestial-power': 250, 'runic-shards': 8, 'divine-essence': 3 },
-            fountain: { 'celestial-power': 100, 'celestial-silver': 80, 'divine-essence': 4 }
-        };
-        
-        this.triggerChange(['initialization']);
+    emit(event, data = {}) {
+        if (this.eventListeners[event]) {
+            this.eventListeners[event].forEach(callback => callback(data));
+        }
     }
 
-    processSectionsData(sectionsData) {
-        // Process sections data and extract repair costs, etc.
-        // This would parse the sections.json file
-        console.log('Processing sections data:', sectionsData);
+    // Resource management
+    getResource(resourceId) {
+        return this.data.resources[resourceId] || 0;
     }
 
-    // State getters
-    get(path) {
-        const keys = path.split('.');
-        let current = this.state;
+    setResource(resourceId, value) {
+        const oldValue = this.data.resources[resourceId];
+        this.data.resources[resourceId] = Math.max(0, parseInt(value) || 0);
         
-        for (const key of keys) {
-            if (current && typeof current === 'object' && key in current) {
-                current = current[key];
-            } else {
-                return undefined;
+        if (oldValue !== this.data.resources[resourceId]) {
+            this.emit('resourceUpdate', { 
+                resource: resourceId, 
+                value: this.data.resources[resourceId],
+                oldValue: oldValue
+            });
+        }
+    }
+
+    canAfford(costs) {
+        for (let resource in costs) {
+            if (this.getResource(resource) < costs[resource]) {
+                return false;
             }
         }
-        
-        return current;
+        return true;
     }
 
-    // State setters with change detection
-    set(path, value, triggerChange = true) {
-        const keys = path.split('.');
-        const lastKey = keys.pop();
-        let current = this.state;
-        
-        // Navigate to the parent object
-        for (const key of keys) {
-            if (!current[key] || typeof current[key] !== 'object') {
-                current[key] = {};
-            }
-            current = current[key];
+    spendResources(costs) {
+        if (!this.canAfford(costs)) {
+            return false;
         }
-        
-        // Set the value
-        const oldValue = current[lastKey];
-        current[lastKey] = value;
-        
-        // Trigger change event if value actually changed
-        if (triggerChange && oldValue !== value) {
-            this.triggerChange([keys.length > 0 ? keys[0] : lastKey]);
+
+        for (let resource in costs) {
+            this.setResource(resource, this.getResource(resource) - costs[resource]);
         }
-        
-        return this;
+        return true;
     }
 
-    // Update nested objects
-    update(path, updates, triggerChange = true) {
-        const current = this.get(path);
-        if (current && typeof current === 'object') {
-            Object.assign(current, updates);
-            if (triggerChange) {
-                this.triggerChange([path.split('.')[0]]);
-            }
-        }
-        return this;
+    // Upgrade management
+    hasUpgrade(sectionId, pathType, upgradeIndex) {
+        return this.data.upgrades[sectionId] && 
+               this.data.upgrades[sectionId][pathType] && 
+               this.data.upgrades[sectionId][pathType].includes(upgradeIndex);
     }
 
-    // Array operations
-    push(path, item, triggerChange = true) {
-        const array = this.get(path);
-        if (Array.isArray(array)) {
-            array.push(item);
-            if (triggerChange) {
-                this.triggerChange([path.split('.')[0]]);
-            }
+    purchaseUpgrade(sectionId, pathType, upgradeIndex, cost) {
+        if (this.hasUpgrade(sectionId, pathType, upgradeIndex)) {
+            return false; // Already purchased
         }
-        return this;
-    }
 
-    remove(path, predicate, triggerChange = true) {
-        const array = this.get(path);
-        if (Array.isArray(array)) {
-            const index = array.findIndex(predicate);
-            if (index !== -1) {
-                array.splice(index, 1);
-                if (triggerChange) {
-                    this.triggerChange([path.split('.')[0]]);
-                }
-            }
+        if (!this.spendResources(cost)) {
+            return false; // Can't afford
         }
-        return this;
-    }
 
-    // Change detection and callbacks
-    triggerChange(changedPaths) {
-        this.changeCallbacks.forEach(callback => {
-            try {
-                callback(changedPaths);
-            } catch (error) {
-                console.error('Error in change callback:', error);
-            }
+        if (!this.data.upgrades[sectionId]) {
+            this.data.upgrades[sectionId] = { research: [], offensive: [], defensive: [] };
+        }
+
+        if (!this.data.upgrades[sectionId][pathType]) {
+            this.data.upgrades[sectionId][pathType] = [];
+        }
+
+        this.data.upgrades[sectionId][pathType].push(upgradeIndex);
+        
+        this.emit('upgradePurchased', {
+            sectionId,
+            pathType,
+            upgradeIndex,
+            cost
         });
+
+        return true;
     }
 
-    onChange(callback) {
-        this.changeCallbacks.push(callback);
-        return () => {
-            const index = this.changeCallbacks.indexOf(callback);
-            if (index > -1) {
-                this.changeCallbacks.splice(index, 1);
-            }
+    getSectionProgress(sectionId, totalUpgrades) {
+        if (!this.data.upgrades[sectionId]) return { completed: 0, total: totalUpgrades, percentage: 0 };
+        
+        const completed = Object.values(this.data.upgrades[sectionId])
+            .reduce((sum, upgrades) => sum + upgrades.length, 0);
+        
+        return {
+            completed,
+            total: totalUpgrades,
+            percentage: (completed / totalUpgrades) * 100
         };
-    }
-
-    // Activity logging
-    logActivity(message) {
-        const now = new Date();
-        const time = now.toLocaleTimeString('en-US', { 
-            hour12: false, 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-        
-        this.state.activity.unshift({ time, message });
-        
-        // Keep only last 50 activities
-        if (this.state.activity.length > 50) {
-            this.state.activity = this.state.activity.slice(0, 50);
-        }
-        
-        this.triggerChange(['activity']);
     }
 
     // Persistence
-    save() {
+    async save() {
         try {
-            this.state.lastSaved = Date.now();
-            localStorage.setItem('bastion-game-state', JSON.stringify(this.state));
-            localStorage.setItem('bastion-backup', JSON.stringify(this.state));
+            this.data.lastSaved = Date.now();
+            localStorage.setItem('bastion-game-state', JSON.stringify(this.data));
+            console.log('Game state saved successfully');
             return true;
         } catch (error) {
             console.error('Failed to save game state:', error);
@@ -321,15 +146,17 @@ export class GameState {
         }
     }
 
-    load() {
+    async load() {
         try {
             const saved = localStorage.getItem('bastion-game-state');
             if (saved) {
-                const loadedState = JSON.parse(saved);
+                const parsedData = JSON.parse(saved);
                 
-                // Merge with default state to handle version updates
-                this.state = { ...this.getDefaultState(), ...loadedState };
-                this.triggerChange(['all']);
+                // Merge with defaults to handle new properties
+                this.data = this.mergeDefaults(parsedData, this.data);
+                
+                console.log('Game state loaded successfully');
+                this.emit('stateLoaded', this.data);
                 return true;
             }
         } catch (error) {
@@ -338,57 +165,86 @@ export class GameState {
         return false;
     }
 
-    autoSave() {
-        if (this.hasUnsavedChanges()) {
+    // Export/Import functionality
+    exportData() {
+        return JSON.stringify(this.data, null, 2);
+    }
+
+    importData(jsonData) {
+        try {
+            const parsedData = JSON.parse(jsonData);
+            this.data = this.mergeDefaults(parsedData, this.data);
+            this.emit('stateLoaded', this.data);
             this.save();
+            return true;
+        } catch (error) {
+            console.error('Failed to import data:', error);
+            return false;
         }
-    }
-
-    hasUnsavedChanges() {
-        return Date.now() - this.state.lastSaved > 30000; // 30 seconds
-    }
-
-    export() {
-        const dataStr = JSON.stringify(this.state, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(dataBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `bastion-campaign-${new Date().toISOString().split('T')[0]}.json`;
-        link.click();
-        URL.revokeObjectURL(url);
-    }
-
-    import(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const importedState = JSON.parse(e.target.result);
-                    this.state = { ...this.getDefaultState(), ...importedState };
-                    this.triggerChange(['all']);
-                    resolve(true);
-                } catch (error) {
-                    reject(error);
-                }
-            };
-            reader.onerror = () => reject(reader.error);
-            reader.readAsText(file);
-        });
     }
 
     // Reset functionality
     reset() {
-        this.state = this.getDefaultState();
-        this.triggerChange(['all']);
+        const defaultData = {
+            resources: {
+                'celestial-power': 1250,
+                'celestial-silver': 85,
+                'runic-shards': 12,
+                'divine-essence': 3,
+                'technical-expertise': 5
+            },
+            upgrades: {
+                luminarium: { research: [], offensive: [], defensive: [] },
+                sanctum: { research: [], offensive: [], defensive: [] },
+                wards: { research: [], offensive: [], defensive: [] },
+                throne: { research: [], offensive: [], defensive: [] },
+                gateway: { research: [], offensive: [], defensive: [] },
+                fountain: { research: [], offensive: [], defensive: [] }
+            },
+            settings: this.data.settings, // Keep settings
+            lastSaved: Date.now()
+        };
+
+        this.data = defaultData;
+        this.emit('stateReset', this.data);
         this.save();
     }
 
+    // Utility function to merge defaults with loaded data
+    mergeDefaults(loaded, defaults) {
+        const result = { ...defaults };
+        
+        for (let key in loaded) {
+            if (typeof loaded[key] === 'object' && loaded[key] !== null && !Array.isArray(loaded[key])) {
+                result[key] = this.mergeDefaults(loaded[key], defaults[key] || {});
+            } else {
+                result[key] = loaded[key];
+            }
+        }
+        
+        return result;
+    }
+
     // Debug helpers
-    debug() {
-        console.log('Current Game State:', this.state);
-        console.log('Active Change Callbacks:', this.changeCallbacks.length);
+    getAllData() {
+        return { ...this.data };
+    }
+
+    getStats() {
+        const totalUpgrades = Object.values(this.data.upgrades)
+            .reduce((total, section) => {
+                return total + Object.values(section).reduce((sectionTotal, path) => {
+                    return sectionTotal + path.length;
+                }, 0);
+            }, 0);
+
+        const totalResources = Object.values(this.data.resources)
+            .reduce((sum, value) => sum + value, 0);
+
+        return {
+            totalUpgrades,
+            totalResources,
+            lastSaved: new Date(this.data.lastSaved).toLocaleString()
+        };
     }
 }
-
-export default GameState;
