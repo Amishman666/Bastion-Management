@@ -1,0 +1,591 @@
+<!-- components/player-dashboard.html - Player Dashboard Component -->
+<div class="player-layout">
+    <!-- Top Row: Resources and Actions -->
+    <div class="player-status">
+        <!-- Player Resources Panel -->
+        <div class="gm-panel player-resources">
+            <h3><i class="fas fa-coins"></i> My Resources</h3>
+            
+            <div id="playerResources" class="resource-display">
+                <div class="resource-item">
+                    <span class="resource-icon">⚡</span>
+                    <span class="resource-name">Celestial Power</span>
+                    <span id="player-celestial-power" class="resource-value">1250</span>
+                </div>
+                
+                <div class="resource-item">
+                    <span class="resource-icon">🥈</span>
+                    <span class="resource-name">Celestial Silver</span>
+                    <span id="player-celestial-silver" class="resource-value">85</span>
+                </div>
+                
+                <div class="resource-item">
+                    <span class="resource-icon">💎</span>
+                    <span class="resource-name">Runic Shards</span>
+                    <span id="player-runic-shards" class="resource-value">12</span>
+                </div>
+                
+                <div class="resource-item">
+                    <span class="resource-icon">✨</span>
+                    <span class="resource-name">Divine Essence</span>
+                    <span id="player-divine-essence" class="resource-value">3</span>
+                </div>
+                
+                <div class="resource-item">
+                    <span class="resource-icon">🔬</span>
+                    <span class="resource-name">Tech Expertise</span>
+                    <span id="player-technical-expertise" class="resource-value">5</span>
+                </div>
+            </div>
+            
+            <!-- Resource Trends (Optional Enhancement) -->
+            <div class="resource-trends">
+                <div class="trend-item">
+                    <span class="trend-label">Daily Generation:</span>
+                    <span class="trend-value positive">+50 ⚡, +10 🥈</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Actions Panel -->
+        <div class="gm-panel player-actions">
+            <h3><i class="fas fa-tasks"></i> Available Actions</h3>
+            
+            <!-- Section Cleaning -->
+            <div class="action-section">
+                <h4 class="action-title">
+                    <i class="fas fa-broom"></i> Section Cleaning
+                </h4>
+                <div id="playerCleaningOptions" class="action-options">
+                    <!-- Cleaning options will be populated here by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Mission Assignment -->
+            <div class="action-section">
+                <h4 class="action-title">
+                    <i class="fas fa-clipboard-list"></i> Mission Assignment
+                </h4>
+                <div id="playerMissionOptions" class="action-options">
+                    <!-- Mission options will be populated here by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="action-section">
+                <h4 class="action-title">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </h4>
+                <div class="quick-actions">
+                    <button class="quick-btn" onclick="requestUpgradeDialog()">
+                        <i class="fas fa-arrow-up"></i> Request Upgrade
+                    </button>
+                    <button class="quick-btn" onclick="viewActivityLog()">
+                        <i class="fas fa-history"></i> View Activity
+                    </button>
+                    <button class="quick-btn" onclick="openCalculator()">
+                        <i class="fas fa-calculator"></i> Resource Calculator
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Middle Row: Active Operations -->
+    <div class="gm-panel active-operations">
+        <h3><i class="fas fa-clock"></i> Active Operations</h3>
+        
+        <div id="activeOperations" class="operations-list">
+            <!-- Active cleaning/mission operations will be shown here -->
+        </div>
+        
+        <!-- Operations Summary -->
+        <div class="operations-summary">
+            <div class="summary-item">
+                <span class="summary-label">Operations in Progress:</span>
+                <span id="operationsCount" class="summary-value">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Estimated Completion:</span>
+                <span id="nextCompletion" class="summary-value">None</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Left: Mission Board -->
+    <div class="mission-board">
+        <h3><i class="fas fa-clipboard-list"></i> Mission Board</h3>
+        
+        <!-- Mission Filters -->
+        <div class="mission-filters">
+            <select id="missionTypeFilter" class="filter-select">
+                <option value="all">All Types</option>
+                <option value="Stealth">Stealth</option>
+                <option value="Combat">Combat</option>
+                <option value="Tech">Tech</option>
+                <option value="Social">Social</option>
+                <option value="Research">Research</option>
+                <option value="Mixed">Mixed</option>
+            </select>
+            
+            <select id="missionStatusFilter" class="filter-select">
+                <option value="available">Available</option>
+                <option value="all">All Status</option>
+                <option value="in-progress">In Progress</option>
+                <option value="completed">Completed</option>
+            </select>
+        </div>
+        
+        <div id="missionList" class="mission-list">
+            <!-- Missions will be populated here by JavaScript -->
+        </div>
+        
+        <!-- Mission Stats -->
+        <div class="mission-stats">
+            <div class="stat-item">
+                <span class="stat-label">Available:</span>
+                <span id="availableMissions" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Completed:</span>
+                <span id="completedMissions" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Success Rate:</span>
+                <span id="successRate" class="stat-value">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Right: Available Team -->
+    <div class="gm-panel team-panel">
+        <h3><i class="fas fa-users"></i> Available Team</h3>
+        
+        <div id="playerNPCList" class="npc-list">
+            <!-- Available NPCs will be shown here -->
+        </div>
+        
+        <!-- Team Summary -->
+        <div class="team-summary">
+            <div class="summary-row">
+                <span class="summary-label">Available NPCs:</span>
+                <span id="availableNPCCount" class="summary-value">0</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Total Skills:</span>
+                <span id="totalTeamSkills" class="summary-value">0</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Average Loyalty:</span>
+                <span id="teamLoyalty" class="summary-value">0%</span>
+            </div>
+        </div>
+        
+        <!-- Team Actions -->
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="viewTeamDetails()">
+                <i class="fas fa-info-circle"></i> Team Details
+            </button>
+            <button class="quick-btn" onclick="manageEquipment()">
+                <i class="fas fa-box"></i> Equipment
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Player Dashboard Modals and Dialogs -->
+
+<!-- Resource Calculator Modal -->
+<div id="resourceCalculatorModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Resource Calculator</h3>
+            <button class="close-btn" onclick="closeModal('resourceCalculatorModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="calculator-section">
+                <h4>Upgrade Cost Calculator</h4>
+                <div class="calc-row">
+                    <label>Section:</label>
+                    <select id="calcSection">
+                        <option value="luminarium">Luminarium</option>
+                        <option value="sanctum">Sanctum</option>
+                        <option value="wards">Wards</option>
+                        <option value="throne">Throne Room</option>
+                        <option value="gateway">Gateway</option>
+                        <option value="fountain">Fountain</option>
+                    </select>
+                </div>
+                <div class="calc-row">
+                    <label>Path:</label>
+                    <select id="calcPath">
+                        <option value="research">Research</option>
+                        <option value="offensive">Offensive</option>
+                        <option value="defensive">Defensive</option>
+                    </select>
+                </div>
+                <div id="calcResults" class="calc-results">
+                    <!-- Results will be shown here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Team Details Modal -->
+<div id="teamDetailsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Team Details</h3>
+            <button class="close-btn" onclick="closeModal('teamDetailsModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="teamDetailsContent">
+                <!-- Team details will be populated here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activity Log Modal -->
+<div id="activityLogModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Recent Activity</h3>
+            <button class="close-btn" onclick="closeModal('activityLogModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="activityLogContent" class="activity-log">
+                <!-- Activity log will be populated here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Player Dashboard JavaScript -->
+<script>
+// Player Dashboard initialization
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.BastionApp && window.BastionApp.userRole === 'player') {
+        initializePlayerDashboard();
+    }
+});
+
+function initializePlayerDashboard() {
+    console.log('👤 Initializing Player Dashboard...');
+    
+    // Set up real-time updates
+    startPlayerUpdates();
+    
+    // Initialize filters
+    initializeMissionFilters();
+    
+    // Set up keyboard shortcuts for players
+    setupPlayerKeyboardShortcuts();
+}
+
+function startPlayerUpdates() {
+    // Update player-specific displays every 30 seconds
+    setInterval(() => {
+        updateOperationsSummary();
+        updateMissionStats();
+        updateTeamSummary();
+    }, 30000);
+}
+
+function updateOperationsSummary() {
+    const countElement = document.getElementById('operationsCount');
+    const completionElement = document.getElementById('nextCompletion');
+    
+    if (!countElement || !completionElement || !window.BastionApp) return;
+    
+    try {
+        const gameState = window.BastionApp.gameState;
+        const cleaningTimers = gameState.get('cleaningTimers') || {};
+        const missionAssignments = gameState.get('missionAssignments') || {};
+        
+        const operationsCount = Object.keys(cleaningTimers).length + Object.keys(missionAssignments).length;
+        countElement.textContent = operationsCount;
+        
+        // Find next completion
+        let nextCompletion = null;
+        Object.values(cleaningTimers).forEach(timer => {
+            const completionTime = timer.startTime + (72 * 60 * 60 * 1000); // 72 hours
+            if (!nextCompletion || completionTime < nextCompletion) {
+                nextCompletion = completionTime;
+            }
+        });
+        
+        if (nextCompletion) {
+            const remaining = nextCompletion - Date.now();
+            if (remaining > 0) {
+                const hours = Math.floor(remaining / (60 * 60 * 1000));
+                const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                completionElement.textContent = `${hours}h ${minutes}m`;
+            } else {
+                completionElement.textContent = 'Ready!';
+            }
+        } else {
+            completionElement.textContent = 'None';
+        }
+    } catch (error) {
+        console.error('Error updating operations summary:', error);
+    }
+}
+
+function updateMissionStats() {
+    const availableElement = document.getElementById('availableMissions');
+    const completedElement = document.getElementById('completedMissions');
+    const successElement = document.getElementById('successRate');
+    
+    if (!availableElement || !completedElement || !successElement || !window.BastionApp) return;
+    
+    try {
+        const missions = window.BastionApp.gameState.get('missions') || [];
+        
+        const available = missions.filter(m => m.status === 'available').length;
+        const completed = missions.filter(m => m.status === 'completed').length;
+        const total = missions.length;
+        const successRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+        
+        availableElement.textContent = available;
+        completedElement.textContent = completed;
+        successElement.textContent = successRate + '%';
+    } catch (error) {
+        console.error('Error updating mission stats:', error);
+    }
+}
+
+function updateTeamSummary() {
+    const countElement = document.getElementById('availableNPCCount');
+    const skillsElement = document.getElementById('totalTeamSkills');
+    const loyaltyElement = document.getElementById('teamLoyalty');
+    
+    if (!countElement || !skillsElement || !loyaltyElement || !window.BastionApp) return;
+    
+    try {
+        const npcs = window.BastionApp.gameState.get('npcs') || [];
+        const availableNPCs = npcs.filter(npc => npc.status === 'available');
+        
+        const count = availableNPCs.length;
+        const totalSkills = availableNPCs.reduce((sum, npc) => 
+            sum + npc.skill + npc.stealth + npc.combat + npc.tech + npc.social + npc.will, 0
+        );
+        const avgLoyalty = count > 0 ? 
+            Math.round(availableNPCs.reduce((sum, npc) => sum + npc.loyalty, 0) / count) : 0;
+        
+        countElement.textContent = count;
+        skillsElement.textContent = totalSkills;
+        loyaltyElement.textContent = avgLoyalty + '%';
+    } catch (error) {
+        console.error('Error updating team summary:', error);
+    }
+}
+
+function initializeMissionFilters() {
+    const typeFilter = document.getElementById('missionTypeFilter');
+    const statusFilter = document.getElementById('missionStatusFilter');
+    
+    if (typeFilter) {
+        typeFilter.addEventListener('change', filterMissions);
+    }
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', filterMissions);
+    }
+}
+
+function filterMissions() {
+    const typeFilter = document.getElementById('missionTypeFilter').value;
+    const statusFilter = document.getElementById('missionStatusFilter').value;
+    
+    // This would be implemented by the missions module
+    if (window.BastionApp && window.BastionApp.missions) {
+        window.BastionApp.missions.filterMissions(typeFilter, statusFilter);
+    }
+}
+
+function setupPlayerKeyboardShortcuts() {
+    document.addEventListener('keydown', function(e) {
+        // Player-specific shortcuts
+        if (e.ctrlKey && e.shiftKey) {
+            switch(e.key) {
+                case 'C':
+                    e.preventDefault();
+                    openCalculator();
+                    break;
+                case 'T':
+                    e.preventDefault();
+                    viewTeamDetails();
+                    break;
+                case 'A':
+                    e.preventDefault();
+                    viewActivityLog();
+                    break;
+            }
+        }
+    });
+}
+
+// Modal management
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'flex';
+        
+        // Focus management
+        const firstFocusable = modal.querySelector('button, input, select, textarea');
+        if (firstFocusable) {
+            firstFocusable.focus();
+        }
+    }
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Player action functions
+function requestUpgradeDialog() {
+    // This would open a dialog to request specific upgrades from GM
+    if (window.BastionApp && window.BastionApp.sections) {
+        window.BastionApp.sections.openUpgradeRequestDialog();
+    }
+}
+
+function openCalculator() {
+    openModal('resourceCalculatorModal');
+    updateCalculatorResults();
+}
+
+function viewTeamDetails() {
+    openModal('teamDetailsModal');
+    loadTeamDetails();
+}
+
+function viewActivityLog() {
+    openModal('activityLogModal');
+    loadActivityLog();
+}
+
+function manageEquipment() {
+    // This would open equipment management interface
+    if (window.BastionApp && window.BastionApp.npcs) {
+        window.BastionApp.npcs.openEquipmentManager();
+    }
+}
+
+// Calculator functions
+function updateCalculatorResults() {
+    const section = document.getElementById('calcSection')?.value;
+    const path = document.getElementById('calcPath')?.value;
+    const resultsDiv = document.getElementById('calcResults');
+    
+    if (!section || !path || !resultsDiv || !window.BastionApp) return;
+    
+    try {
+        // This would calculate upgrade costs based on current state
+        const upgradeCosts = window.BastionApp.sections.calculateUpgradeCosts(section, path);
+        
+        resultsDiv.innerHTML = `
+            <h5>Total Cost for ${section} ${path} path:</h5>
+            <div class="cost-breakdown">
+                ${Object.entries(upgradeCosts).map(([resource, amount]) => `
+                    <div class="cost-item">
+                        <span class="resource-icon">${getResourceIcon(resource)}</span>
+                        <span>${amount} ${resource.replace('-', ' ')}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } catch (error) {
+        resultsDiv.innerHTML = '<p class="error">Error calculating costs</p>';
+    }
+}
+
+function loadTeamDetails() {
+    const content = document.getElementById('teamDetailsContent');
+    if (!content || !window.BastionApp) return;
+    
+    try {
+        const npcs = window.BastionApp.gameState.get('npcs') || [];
+        
+        content.innerHTML = npcs.map(npc => `
+            <div class="team-member-detail">
+                <h5>${npc.name} - ${npc.title}</h5>
+                <div class="npc-stats-detail">
+                    <div>Skill: ${npc.skill} | Stealth: ${npc.stealth} | Combat: ${npc.combat}</div>
+                    <div>Tech: ${npc.tech} | Social: ${npc.social} | Will: ${npc.will}</div>
+                    <div>Loyalty: ${npc.loyalty}% | Status: ${npc.status}</div>
+                </div>
+                <div class="npc-trait">${npc.trait}</div>
+            </div>
+        `).join('');
+    } catch (error) {
+        content.innerHTML = '<p class="error">Error loading team details</p>';
+    }
+}
+
+function loadActivityLog() {
+    const content = document.getElementById('activityLogContent');
+    if (!content || !window.BastionApp) return;
+    
+    try {
+        const activity = window.BastionApp.gameState.get('activity') || [];
+        
+        content.innerHTML = activity.slice(0, 20).map(item => `
+            <div class="activity-item">
+                <span class="activity-time">${item.time}</span>
+                <span class="activity-message">${item.message}</span>
+            </div>
+        `).join('');
+    } catch (error) {
+        content.innerHTML = '<p class="error">Error loading activity log</p>';
+    }
+}
+
+function getResourceIcon(resource) {
+    const icons = {
+        'celestial-power': '⚡',
+        'celestial-silver': '🥈',
+        'runic-shards': '💎',
+        'divine-essence': '✨',
+        'technical-expertise': '🔬'
+    };
+    return icons[resource] || '?';
+}
+
+// Close modals when clicking outside
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal')) {
+        e.target.style.display = 'none';
+    }
+});
+
+// Close modals with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
+    }
+});
+
+// Auto-update calculator when dropdowns change
+document.addEventListener('DOMContentLoaded', function() {
+    const calcSection = document.getElementById('calcSection');
+    const calcPath = document.getElementById('calcPath');
+    
+    if (calcSection) calcSection.addEventListener('change', updateCalculatorResults);
+    if (calcPath) calcPath.addEventListener('change', updateCalculatorResults);
+});
+</script>
