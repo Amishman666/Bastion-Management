@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Bastion - Celestial Fortress Management</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f2e;
+            --accent-bg: #2a3441;
+            --gold: #ffd700;
+            --gold-dark: #b8860b;
+            --cyan: #00d4ff;
+            --red: #ff3366;
+            --green: #00ff88;
+            --purple: #b266ff;
+            --text-primary: #ffffff;
+            --text-secondary: #b8c5d1;
+            --border: rgba(255, 215, 0, 0.3);
+            --glow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, #0f1419 50%, var(--primary-bg) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(178, 102, 255, 0.1) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            box-shadow: var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.03), transparent);
+            animation: shine 3s ease-in-out infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+            100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        }
+
+        .header h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--gold), var(--cyan), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .status-item {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow);
+            border-color: var(--gold);
+        }
+
+        .status-item .icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .status-item .label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .status-item .value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--glow);
+            height: fit-content;
+        }
+
+        .sidebar h2 {
+            font-family: 'Orbitron', monospace;
+            color: var(--gold);
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+
+        .resource-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .resource-item:hover {
+            background: rgba(255, 215, 0, 0.05);
+            border-radius: 8px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .resource-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .resource-icon {
+            font-size: 1.2rem;
+            width: 25px;
+        }
+
+        .resource-name {
+            font-weight: 500;
+        }
+
+        .resource-amount {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .resource-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .resource-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 8px;
+            color: white;
+            width: 80px;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .resource-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .section-card {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--glow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.2), var(--glow);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .section-progress {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--cyan));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: progressShine 2s ease-in-out infinite;
+        }
+
+        @keyframes progressShine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .paths-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .path {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .path:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border);
+        }
+
+        .path-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .path-header:hover {
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .path-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .path.research .path-name { color: var(--cyan); }
+        .path.offensive .path-name { color: var(--red); }
+        .path.defensive .path-name { color: var(--green); }
+
+        .path-toggle {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .path.expanded .path-toggle {
+            transform: rotate(180deg);
+        }
+
+        .upgrades-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .path.expanded .upgrades-list {
+            max-height: 1000px;
+        }
+
+        .upgrade-item {
+            background: rgba(255, 255, 255, 0.02);
+            margin: 0 15px 15px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 18px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .upgrade-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        .upgrade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .upgrade-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.05rem;
+        }
+
+        .upgrade-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-available {
+            background: var(--green);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .status-locked {
+            background: var(--red);
+            color: white;
+        }
+
+        .status-completed {
+            background: var(--gold);
+            color: #000;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .upgrade-description {
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .upgrade-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upgrade-cost {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+
+        .cost-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-secondary);
+        }
+
+        .purchase-btn {
+            background: linear-gradient(45deg, var(--gold), var(--gold-dark));
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.8rem;
+        }
+
+        .purchase-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .purchase-btn:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .mission-log {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--glow);
+            margin-top: 30px;
+        }
+
+        .mission-log h2 {
+            font-family: 'Orbitron', monospace;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+
+        .mission-entry {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .mission-entry:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-bar {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .efficiency-bonus {
+            background: linear-gradient(45deg, rgba(0, 212, 255, 0.2), rgba(0, 212, 255, 0.1));
+            border: 1px solid var(--cyan);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .efficiency-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--cyan);
+            margin-bottom: 5px;
+        }
+
+        .efficiency-source {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-fortress"></i> THE BASTION</h1>
+            <p class="subtitle">Celestial Fortress Management System</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="icon">🟢</span>
+                <div class="label">System Status</div>
+                <div class="value">ONLINE</div>
+            </div>
+            <div class="status-item">
+                <span class="icon">⚡</span>
+                <div class="label">Power Level</div>
+                <div class="value" id="power-level">85%</div>
+            </div>
+            <div class="status-item">
+                <span class="icon">🛡️</span>
+                <div class="label">Defenses</div>
+                <div class="value">ACTIVE</div>
+            </div>
+            <div class="status-item">
+                <span class="icon">👥</span>
+                <div class="label">Players</div>
+                <div class="value">4</div>
+            </div>
+        </div>
+
+        <div class="efficiency-bonus">
+            <div class="efficiency-value" id="efficiency-display">+0%</div>
+            <div class="efficiency-source" id="efficiency-source">No active bonuses</div>
+        </div>
+
+        <div class="main-grid">
+            <div class="sidebar">
+                <h2><i class="fas fa-coins"></i> Resources</h2>
+                <div class="resource-item">
+                    <div class="resource-info">
+                        <span class="resource-icon">⚡</span>
+                        <span class="resource-name">Celestial Power</span>
+                    </div>
+                    <div class="resource-amount">
+                        <span class="resource-value" id="celestial-power">1250</span>
+                        <input type="number" class="resource-input" id="celestial-power-input" value="1250" onchange="updateResource('celestial-power', this.value)">
+                    </div>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-info">
+                        <span class="resource-icon">🥈</span>
+                        <span class="resource-name">Celestial Silver</span>
+                    </div>
+                    <div class="resource-amount">
+                        <span class="resource-value" id="celestial-silver">85</span>
+                        <input type="number" class="resource-input" id="celestial-silver-input" value="85" onchange="updateResource('celestial-silver', this.value)">
+                    </div>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-info">
+                        <span class="resource-icon">💎</span>
+                        <span class="resource-name">Runic Shards</span>
+                    </div>
+                    <div class="resource-amount">
+                        <span class="resource-value" id="runic-shards">12</span>
+                        <input type="number" class="resource-input" id="runic-shards-input" value="12" onchange="updateResource('runic-shards', this.value)">
+                    </div>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-info">
+                        <span class="resource-icon">✨</span>
+                        <span class="resource-name">Divine Essence</span>
+                    </div>
+                    <div class="resource-amount">
+                        <span class="resource-value" id="divine-essence">3</span>
+                        <input type="number" class="resource-input" id="divine-essence-input" value="3" onchange="updateResource('divine-essence', this.value)">
+                    </div>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-info">
+                        <span class="resource-icon">🔬</span>
+                        <span class="resource-name">Tech Expertise</span>
+                    </div>
+                    <div class="resource-amount">
+                        <span class="resource-value" id="technical-expertise">5</span>
+                        <input type="number" class="resource-input" id="technical-expertise-input" value="5" onchange="updateResource('technical-expertise', this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content" id="sections-container">
+                <!-- Sections will be dynamically generated -->
+            </div>
+        </div>
+
+        <div class="mission-log">
+            <h2><i class="fas fa-scroll"></i> Mission Log</h2>
+            <div class="mission-entry">
+                <strong>2025-05-22:</strong> Angel Contact Mission - Acquired 1 Divine Essence through diplomatic contact
+            </div>
+            <div class="mission-entry">
+                <strong>2025-05-21:</strong> Void Scan Research - Found 3 Runic Shards in astral debris field
+            </div>
+            <div class="mission-entry">
+                <strong>2025-05-20:</strong> Defense Protocol - Successfully repelled corruption attack, gained 100 Celestial Power
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state management with local storage
+        const gameState = {
+            resources: {
+                'celestial-power': 1250,
+                'celestial-silver': 85,
+                'runic-shards': 12,
+                'divine-essence': 3,
+                'technical-expertise': 5
+            },
+            upgrades: {
+                luminarium: { research: [], offensive: [], defensive: [] },
+                sanctum: { research: [], offensive: [], defensive: [] },
+                wards: { research: [], offensive: [], defensive: [] },
+                throne: { research: [], offensive: [], defensive: [] },
+                gateway: { research: [], offensive: [], defensive: [] },
+                fountain: { research: [], offensive: [], defensive: [] }
+            }
+        };
+
+        // Load saved state
+        function loadGameState() {
+            const saved = localStorage.getItem('bastion-game-state');
+            if (saved) {
+                const parsedState = JSON.parse(saved);
+                Object.assign(gameState, parsedState);
+                
+                // Update resource displays
+                Object.keys(gameState.resources).forEach(resource => {
+                    document.getElementById(resource).textContent = gameState.resources[resource];
+                    document.getElementById(resource + '-input').value = gameState.resources[resource];
+                });
+            }
+        }
+
+        // Save game state
+        function saveGameState() {
+            localStorage.setItem('bastion-game-state', JSON.stringify(gameState));
+        }
+
+        // Section definitions with all upgrade data
+        const sections = {
+            luminarium: {
+                title: "🏛️ Luminarium",
+                description: "Main Power Generator",
+                paths: {
+                    research: [
+                        { name: "Pulse Harmonization", description: "Increases efficiency of all other sections by 10% when fully operational. Also improves astral propulsion control.", cost: { 'celestial-power': 100, 'technical-expertise': 2 } },
+                        { name: "Celestial Mapping", description: "Tracks divine energy sources throughout the cosmos, identifying potential grace reservoirs and anomalies.", cost: { 'celestial-power': 150, 'runic-shards': 3 } },
+                        { name: "Grace Recycling", description: "Recovers spent grace for reuse in critical systems, increasing operational duration between refueling.", cost: { 'celestial-power': 200, 'divine-essence': 1 } }
+                    ],
+                    offensive: [
+                        { name: "Radiant Overcharge", description: "Once per day, release a radiant pulse that deals light damage to all enemies within the Bastion.", cost: { 'celestial-power': 120, 'celestial-silver': 50 } },
+                        { name: "Focused Beam", description: "Channel concentrated energy into a devastating attack against a single target, effective against heavily shielded foes.", cost: { 'celestial-power': 180, 'runic-shards': 4 } },
+                        { name: "Grace Storm", description: "Create a field of wild grace energy that disrupts magical effects and damages corrupt entities.", cost: { 'celestial-power': 250, 'divine-essence': 2 } }
+                    ],
+                    defensive: [
+                        { name: "Failsafe Core", description: "Prevents total Bastion failure once per major event, triggering a temporary energy field protecting all sections.", cost: { 'celestial-power': 200, 'technical-expertise': 3 } },
+                        { name: "Adaptive Shielding", description: "Automatically adjusts defenses based on the nature of incoming threats, offering optimal protection.", cost: { 'celestial-power': 300, 'runic-shards': 5 } },
+                        { name: "Dimensional Anchor", description: "Prevents forced translocation of the Bastion by hostile entities, ensuring strategic position control.", cost: { 'celestial-power': 400, 'divine-essence': 3 } }
+                    ]
+                }
+            },
+            sanctum: {
+                title: "⛪ Sanctum",
+                description: "Purification & Spiritual Focus",
+                paths: {
+                    research: [
+                        { name: "Soul Resonance Mapping", description: "Grants insight into corrupted items or beings, enabling better exorcism or artifact cleansing.", cost: { 'celestial-power': 80, 'divine-essence': 1 } },
+                        { name: "Divine Communion", description: "Establish temporary communication with higher divine powers for guidance on critical matters.", cost: { 'celestial-power': 150, 'divine-essence': 2 } },
+                        { name: "Ethereal Perception", description: "Detect spiritual anomalies across dimensional boundaries, providing early warning of threats.", cost: { 'celestial-power': 200, 'runic-shards': 3 } }
+                    ],
+                    offensive: [
+                        { name: "Judgment Flare", description: "Empower allies to deal radiant damage when fighting corrupted foes. Can also blind nearby threats.", cost: { 'celestial-power': 100, 'celestial-silver': 40 } },
+                        { name: "Banishment Wave", description: "Force extraplanar entities back to their native dimensions, effective against invading forces.", cost: { 'celestial-power': 180, 'divine-essence': 2 } },
+                        { name: "Purifying Flame", description: "Create weapons of pure spiritual energy that bypass physical defenses.", cost: { 'celestial-power': 250, 'divine-essence': 3 } }
+                    ],
+                    defensive: [
+                        { name: "Sacred Veil", description: "Aura around the Sanctum slowly purifies corruption in adjacent areas.", cost: { 'celestial-power': 120, 'runic-shards': 2 } },
+                        { name: "Spiritual Barrier", description: "Block attempts at spiritual invasion or possession, protecting inhabitants from psychic attacks.", cost: { 'celestial-power': 200, 'divine-essence': 2 } },
+                        { name: "Blessing of Protection", description: "Grant allies temporary immunity to specific types of corruption or negative energy.", cost: { 'celestial-power': 300, 'divine-essence': 4 } }
+                    ]
+                }
+            },
+            wards: {
+                title: "🛡️ Wards",
+                description: "Defensive Matrix",
+                paths: {
+                    research: [
+                        { name: "Sigil Scripting", description: "Inscribe temporary protective runes before dangerous missions, adding protection to allies.", cost: { 'celestial-power': 90, 'technical-expertise': 2 } },
+                        { name: "Breach Analysis", description: "When wards are compromised, gain perfect understanding of the method used, preventing future breaches.", cost: { 'celestial-power': 160, 'runic-shards': 3 } },
+                        { name: "Reactive Mathematics", description: "Defensive formulas that adapt to new threats, gradually becoming more effective against recurring enemies.", cost: { 'celestial-power': 220, 'technical-expertise': 4 } }
+                    ],
+                    offensive: [
+                        { name: "Heaven's Volley", description: "Install celestial cannon arrays on the Bastion. Can be fired once per day to target incoming threats.", cost: { 'celestial-power': 150, 'celestial-silver': 60 } },
+                        { name: "Counter-Sigils", description: "When defensive wards are struck, they reflect a portion of the attack back at the source.", cost: { 'celestial-power': 200, 'runic-shards': 4 } },
+                        { name: "Binding Protocols", description: "Create temporary fields that restrict movement and abilities of hostile entities within range.", cost: { 'celestial-power': 280, 'divine-essence': 2 } }
+                    ],
+                    defensive: [
+                        { name: "Layered Shielding", description: "Enhances physical and magical ward structures, increasing durability against siege effects.", cost: { 'celestial-power': 140, 'technical-expertise': 3 } },
+                        { name: "Phasing Barriers", description: "Defenses exist partially out of phase, making them harder to target and destroy.", cost: { 'celestial-power': 220, 'runic-shards': 5 } },
+                        { name: "Bastion Memory", description: "The structure 'remembers' previous attacks, automatically reinforcing against similar future threats.", cost: { 'celestial-power': 350, 'divine-essence': 3 } }
+                    ]
+                }
+            },
+            throne: {
+                title: "👑 Throne Room",
+                description: "Command Center",
+                paths: {
+                    research: [
+                        { name: "Battle Archives", description: "Gain tactical insights post-battle. Ask one additional question from any information-gathering source.", cost: { 'celestial-power': 100, 'technical-expertise': 2 } },
+                        { name: "Strategic Modeling", description: "Create magical simulations to test tactics before implementation, improving success rates.", cost: { 'celestial-power': 180, 'runic-shards': 3 } },
+                        { name: "Command Linguistics", description: "Enhanced communication with allies across vast distances, regardless of language barriers.", cost: { 'celestial-power': 240, 'divine-essence': 2 } }
+                    ],
+                    offensive: [
+                        { name: "Battle Synchrony", description: "Designate one mission per week as 'coordinated,' giving a +1 bonus to all rolls due to superior planning.", cost: { 'celestial-power': 120, 'celestial-silver': 50 } },
+                        { name: "Command Authority", description: "Voice carries supernatural weight, causing lesser enemies to hesitate or flee.", cost: { 'celestial-power': 200, 'divine-essence': 2 } },
+                        { name: "Tactical Inspiration", description: "During critical moments, can grant allies an unexpected second wind or insight.", cost: { 'celestial-power': 300, 'divine-essence': 3 } }
+                    ],
+                    defensive: [
+                        { name: "Iron Mandate", description: "Enemies attempting to sabotage command face higher resistance or misdirection.", cost: { 'celestial-power': 110, 'technical-expertise': 2 } },
+                        { name: "Protected Awareness", description: "Command staff cannot be magically scried upon or have thoughts read without their knowledge.", cost: { 'celestial-power': 190, 'runic-shards': 4 } },
+                        { name: "Contingency Protocols", description: "If command is compromised, automated systems maintain basic functions until control is restored.", cost: { 'celestial-power': 280, 'technical-expertise': 5 } }
+                    ]
+                }
+            },
+            gateway: {
+                title: "🌀 Gateway",
+                description: "Teleportation Hub",
+                paths: {
+                    research: [
+                        { name: "Harmonic Coordinates", description: "Unlock hidden realms or rare mission sites with unique rewards.", cost: { 'celestial-power': 130, 'runic-shards': 3 } },
+                        { name: "Sympathetic Mapping", description: "After visiting a location once, can return with perfect accuracy regardless of wards or barriers.", cost: { 'celestial-power': 200, 'technical-expertise': 3 } },
+                        { name: "Beacon Understanding", description: "Ability to analyze and potentially replicate transportation methods of other beings.", cost: { 'celestial-power': 270, 'divine-essence': 2 } }
+                    ],
+                    offensive: [
+                        { name: "Tactical Insertion", description: "Once per session, deploy a team directly into a known hostile location bypassing travel.", cost: { 'celestial-power': 160, 'celestial-silver': 70 } },
+                        { name: "Portal Strike", description: "Open momentary gateways to launch attacks from unexpected angles.", cost: { 'celestial-power': 230, 'runic-shards': 4 } },
+                        { name: "Dimensional Shear", description: "Create unstable planar intersections that damage creatures caught between worlds.", cost: { 'celestial-power': 320, 'divine-essence': 3 } }
+                    ],
+                    defensive: [
+                        { name: "Interdiction Array", description: "Nullifies teleportation-based infiltration attempts into the Bastion.", cost: { 'celestial-power': 150, 'technical-expertise': 3 } },
+                        { name: "Escape Protocols", description: "In dire emergencies, automatically evacuates critical personnel to predetermined safe locations.", cost: { 'celestial-power': 220, 'runic-shards': 5 } },
+                        { name: "Planar Anchoring", description: "Stabilizes local reality, preventing dimensional manipulation within the Bastion's influence.", cost: { 'celestial-power': 350, 'divine-essence': 4 } }
+                    ]
+                }
+            },
+            fountain: {
+                title: "⛲ Fountain of Grace",
+                description: "Healing Center",
+                paths: {
+                    research: [
+                        { name: "Graceflow Optimization", description: "Increases passive generation of celestial silver and healing effectiveness.", cost: { 'celestial-power': 110, 'technical-expertise': 2 } },
+                        { name: "Essence Analysis", description: "Identify the nature and source of injuries or afflictions with perfect accuracy.", cost: { 'celestial-power': 170, 'divine-essence': 1 } },
+                        { name: "Resurrection Protocols", description: "Establish foundation for potential revival of fatally wounded allies under specific conditions.", cost: { 'celestial-power': 300, 'divine-essence': 4 } }
+                    ],
+                    offensive: [
+                        { name: "Blessing Surge", description: "Store divine interventions for use in dire situations.", cost: { 'celestial-power': 140, 'celestial-silver': 60 } },
+                        { name: "Purifying Cascade", description: "Transform fountain energies into damaging wave against unholy entities.", cost: { 'celestial-power': 210, 'divine-essence': 2 } },
+                        { name: "Lifeforce Manipulation", description: "Temporarily enhance allies' physical capabilities beyond normal limits.", cost: { 'celestial-power': 290, 'divine-essence': 3 } }
+                    ],
+                    defensive: [
+                        { name: "Aegis Misting", description: "Emergency regenerative mist healing allies in adjacent sections.", cost: { 'celestial-power': 120, 'runic-shards': 3 } },
+                        { name: "Stasis Field", description: "Preserve critically wounded in suspended animation until proper healing is available.", cost: { 'celestial-power': 200, 'technical-expertise': 4 } },
+                        { name: "Vitality Shield", description: "Convert incoming damage to healing energy with diminishing returns.", cost: { 'celestial-power': 320, 'divine-essence': 4 } }
+                    ]
+                }
+            }
+        };
+
+        // Resource management
+        function updateResource(resourceId, value) {
+            gameState.resources[resourceId] = parseInt(value) || 0;
+            document.getElementById(resourceId).textContent = gameState.resources[resourceId];
+            updateAllUpgradeStates();
+            updatePowerLevel();
+            saveGameState();
+        }
+
+        function updatePowerLevel() {
+            const totalPower = gameState.resources['celestial-power'];
+            const powerPercent = Math.min(100, Math.max(0, (totalPower / 2000) * 100));
+            document.getElementById('power-level').textContent = Math.round(powerPercent) + '%';
+        }
+
+        // Upgrade system
+        function canAffordUpgrade(costs) {
+            for (let resource in costs) {
+                if (gameState.resources[resource] < costs[resource]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function purchaseUpgrade(sectionId, pathType, upgradeIndex) {
+            const upgrade = sections[sectionId].paths[pathType][upgradeIndex];
+            
+            if (canAffordUpgrade(upgrade.cost) && !gameState.upgrades[sectionId][pathType].includes(upgradeIndex)) {
+                // Deduct costs
+                for (let resource in upgrade.cost) {
+                    gameState.resources[resource] -= upgrade.cost[resource];
+                    document.getElementById(resource).textContent = gameState.resources[resource];
+                    document.getElementById(resource + '-input').value = gameState.resources[resource];
+                }
+                
+                // Add upgrade
+                gameState.upgrades[sectionId][pathType].push(upgradeIndex);
+                
+                // Update displays
+                updateAllUpgradeStates();
+                updateEfficiencyBonus();
+                updatePowerLevel();
+                saveGameState();
+            }
+        }
+
+        function updateEfficiencyBonus() {
+            let bonus = 0;
+            let sources = [];
+            
+            if (gameState.upgrades.luminarium.research.includes(0)) { // Pulse Harmonization
+                bonus += 10;
+                sources.push("Pulse Harmonization");
+            }
+            
+            document.getElementById('efficiency-display').textContent = `+${bonus}%`;
+            document.getElementById('efficiency-source').textContent = sources.length > 0 ? `Active: ${sources.join(', ')}` : 'No active bonuses';
+        }
+
+        function updateAllUpgradeStates() {
+            Object.keys(sections).forEach(sectionId => {
+                updateSectionProgress(sectionId);
+                Object.keys(sections[sectionId].paths).forEach(pathType => {
+                    sections[sectionId].paths[pathType].forEach((upgrade, index) => {
+                        const upgradeElement = document.getElementById(`${sectionId}-${pathType}-${index}`);
+                        if (upgradeElement) {
+                            const isCompleted = gameState.upgrades[sectionId][pathType].includes(index);
+                            const canAfford = canAffordUpgrade(upgrade.cost);
+                            
+                            const statusElement = upgradeElement.querySelector('.upgrade-status');
+                            const buttonElement = upgradeElement.querySelector('.purchase-btn');
+                            
+                            if (isCompleted) {
+                                statusElement.textContent = 'Completed';
+                                statusElement.className = 'upgrade-status status-completed';
+                                buttonElement.style.display = 'none';
+                            } else if (canAfford) {
+                                statusElement.textContent = 'Available';
+                                statusElement.className = 'upgrade-status status-available';
+                                buttonElement.disabled = false;
+                                buttonElement.style.display = 'inline-block';
+                            } else {
+                                statusElement.textContent = 'Locked';
+                                statusElement.className = 'upgrade-status status-locked';
+                                buttonElement.disabled = true;
+                                buttonElement.style.display = 'inline-block';
+                            }
+                        }
+                    });
+                });
+            });
+        }
+
+        function updateSectionProgress(sectionId) {
+            const total = Object.values(sections[sectionId].paths).reduce((sum, path) => sum + path.length, 0);
+            const completed = Object.values(gameState.upgrades[sectionId]).reduce((sum, upgrades) => sum + upgrades.length, 0);
+            const percentage = (completed / total) * 100;
+            
+            const progressFill = document.querySelector(`#${sectionId} .progress-fill`);
+            const progressText = document.querySelector(`#${sectionId} .progress-text`);
+            
+            if (progressFill && progressText) {
+                progressFill.style.width = percentage + '%';
+                progressText.textContent = `${completed}/${total}`;
+            }
+        }
+
+        function togglePath(sectionId, pathType) {
+            const path = document.getElementById(`${sectionId}-${pathType}`);
+            path.classList.toggle('expanded');
+        }
+
+        // Resource icons mapping
+        const resourceIcons = {
+            'celestial-power': '⚡',
+            'celestial-silver': '🥈',
+            'runic-shards': '💎',
+            'divine-essence': '✨',
+            'technical-expertise': '🔬'
+        };
+
+        // Initialize the dashboard
+        function initializeDashboard() {
+            const container = document.getElementById('sections-container');
+            
+            Object.keys(sections).forEach(sectionId => {
+                const section = sections[sectionId];
+                const totalUpgrades = Object.values(section.paths).reduce((sum, path) => sum + path.length, 0);
+                const completedUpgrades = Object.values(gameState.upgrades[sectionId]).reduce((sum, upgrades) => sum + upgrades.length, 0);
+                const progressPercentage = (completedUpgrades / totalUpgrades) * 100;
+                
+                const sectionHtml = `
+                    <div class="section-card" id="${sectionId}">
+                        <div class="section-header">
+                            <div class="section-title">${section.title}</div>
+                            <div class="section-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${progressPercentage}%"></div>
+                                </div>
+                                <span class="progress-text">${completedUpgrades}/${totalUpgrades}</span>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">${section.description}</p>
+                        <div class="paths-container">
+                            ${Object.keys(section.paths).map(pathType => `
+                                <div class="path ${pathType}" id="${sectionId}-${pathType}">
+                                    <div class="path-header" onclick="togglePath('${sectionId}', '${pathType}')">
+                                        <div class="path-name">
+                                            <i class="fas fa-${pathType === 'research' ? 'microscope' : pathType === 'offensive' ? 'sword' : 'shield-alt'}"></i>
+                                            ${pathType.charAt(0).toUpperCase() + pathType.slice(1)} Path
+                                        </div>
+                                        <span class="path-toggle">▼</span>
+                                    </div>
+                                    <div class="upgrades-list">
+                                        ${section.paths[pathType].map((upgrade, index) => `
+                                            <div class="upgrade-item" id="${sectionId}-${pathType}-${index}">
+                                                <div class="upgrade-header">
+                                                    <div class="upgrade-name">${upgrade.name}</div>
+                                                    <span class="upgrade-status status-locked">Locked</span>
+                                                </div>
+                                                <div class="upgrade-description">${upgrade.description}</div>
+                                                <div class="upgrade-footer">
+                                                    <div class="upgrade-cost">
+                                                        ${Object.entries(upgrade.cost).map(([resource, amount]) => `
+                                                            <span class="cost-item">
+                                                                ${resourceIcons[resource]} ${amount}
+                                                            </span>
+                                                        `).join('')}
+                                                    </div>
+                                                    <button class="purchase-btn" onclick="purchaseUpgrade('${sectionId}', '${pathType}', ${index})" disabled>
+                                                        Purchase
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += sectionHtml;
+            });
+            
+            updateAllUpgradeStates();
+            updateEfficiencyBonus();
+            updatePowerLevel();
+        }
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGameState();
+            initializeDashboard();
+        });
+    </script>
+</body>
+</html>
