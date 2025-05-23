@@ -1,0 +1,553 @@
+<!-- components/section-cards.html - Section Upgrade Cards Component -->
+<!-- This template will be populated dynamically by JavaScript -->
+
+<template id="sectionCardTemplate">
+    <div class="section-card" data-section-id="">
+        <div class="section-header">
+            <div class="section-title-group">
+                <h3 class="section-title"></h3>
+                <p class="section-description"></p>
+            </div>
+            
+            <div class="section-status-group">
+                <div class="section-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span class="progress-text"></span>
+                </div>
+                
+                <div class="section-state">
+                    <span class="state-text"></span>
+                    <div class="timer-info"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Online Section Content -->
+        <div class="section-content online-content">
+            <div class="paths-container">
+                <!-- Research Path -->
+                <div class="upgrade-path research-path" data-path="research">
+                    <div class="path-header" onclick="togglePath(this)">
+                        <div class="path-name">
+                            <i class="fas fa-microscope"></i>
+                            <span>Research Path</span>
+                        </div>
+                        <div class="path-info">
+                            <span class="path-progress">0/3</span>
+                            <i class="fas fa-chevron-down path-toggle"></i>
+                        </div>
+                    </div>
+                    <div class="upgrades-list">
+                        <!-- Upgrades will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Offensive Path -->
+                <div class="upgrade-path offensive-path" data-path="offensive">
+                    <div class="path-header" onclick="togglePath(this)">
+                        <div class="path-name">
+                            <i class="fas fa-sword"></i>
+                            <span>Offensive Path</span>
+                        </div>
+                        <div class="path-info">
+                            <span class="path-progress">0/3</span>
+                            <i class="fas fa-chevron-down path-toggle"></i>
+                        </div>
+                    </div>
+                    <div class="upgrades-list">
+                        <!-- Upgrades will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Defensive Path -->
+                <div class="upgrade-path defensive-path" data-path="defensive">
+                    <div class="path-header" onclick="togglePath(this)">
+                        <div class="path-name">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Defensive Path</span>
+                        </div>
+                        <div class="path-info">
+                            <span class="path-progress">0/3</span>
+                            <i class="fas fa-chevron-down path-toggle"></i>
+                        </div>
+                    </div>
+                    <div class="upgrades-list">
+                        <!-- Upgrades will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Offline Section Content -->
+        <div class="section-content offline-content">
+            <div class="offline-status">
+                <i class="fas fa-tools offline-icon"></i>
+                <div class="offline-message">
+                    <h4>Section Offline</h4>
+                    <p class="status-description"></p>
+                </div>
+            </div>
+            
+            <div class="offline-actions">
+                <!-- Actions will be populated based on section state -->
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="upgradeItemTemplate">
+    <div class="upgrade-item" data-upgrade-index="">
+        <div class="upgrade-header">
+            <h5 class="upgrade-name"></h5>
+            <span class="upgrade-status status-locked">Locked</span>
+        </div>
+        
+        <p class="upgrade-description"></p>
+        
+        <div class="upgrade-footer">
+            <div class="upgrade-cost">
+                <!-- Cost items will be populated here -->
+            </div>
+            
+            <div class="upgrade-actions">
+                <button class="upgrade-btn purchase-btn" onclick="purchaseUpgrade(this)">
+                    Purchase
+                </button>
+                <button class="upgrade-btn request-btn" onclick="requestUpgrade(this)">
+                    Request
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="costItemTemplate">
+    <span class="cost-item">
+        <span class="cost-icon"></span>
+        <span class="cost-amount"></span>
+    </span>
+</template>
+
+<!-- Section Management Actions (for GM) -->
+<template id="sectionActionsTemplate">
+    <div class="section-actions">
+        <button class="action-btn clean-btn" onclick="startCleaning(this)">
+            <i class="fas fa-broom"></i>
+            Start Cleaning
+        </button>
+        
+        <button class="action-btn repair-btn" onclick="repairSection(this)">
+            <i class="fas fa-wrench"></i>
+            Repair Section
+        </button>
+        
+        <button class="action-btn force-complete-btn" onclick="forceComplete(this)">
+            <i class="fas fa-fast-forward"></i>
+            Force Complete
+        </button>
+        
+        <button class="action-btn damage-btn" onclick="damageSection(this)">
+            <i class="fas fa-exclamation-triangle"></i>
+            Damage Section
+        </button>
+    </div>
+</template>
+
+<!-- Section Cards JavaScript -->
+<script>
+// Section card management
+class SectionCardManager {
+    constructor() {
+        this.sections = {};
+        this.container = null;
+        this.userRole = null;
+    }
+
+    initialize(sectionsData, container, userRole) {
+        this.sections = sectionsData;
+        this.container = container;
+        this.userRole = userRole;
+        
+        this.renderAllSections();
+        this.setupEventListeners();
+    }
+
+    renderAllSections() {
+        if (!this.container) return;
+        
+        this.container.innerHTML = '';
+        
+        Object.keys(this.sections).forEach(sectionId => {
+            const sectionCard = this.createSectionCard(sectionId);
+            this.container.appendChild(sectionCard);
+        });
+    }
+
+    createSectionCard(sectionId) {
+        const template = document.getElementById('sectionCardTemplate');
+        const section = this.sections[sectionId];
+        const card = template.content.cloneNode(true);
+        
+        // Set basic section info
+        const cardElement = card.querySelector('.section-card');
+        cardElement.dataset.sectionId = sectionId;
+        
+        const titleElement = card.querySelector('.section-title');
+        titleElement.textContent = section.title;
+        
+        const descElement = card.querySelector('.section-description');
+        descElement.textContent = section.description;
+        
+        // Update section state
+        this.updateSectionState(cardElement, sectionId);
+        
+        // Populate upgrade paths if section is online
+        if (this.getSectionState(sectionId) === 'online') {
+            this.populateUpgradePaths(cardElement, sectionId);
+        }
+        
+        return cardElement;
+    }
+
+    updateSectionState(cardElement, sectionId) {
+        const state = this.getSectionState(sectionId);
+        const isOnline = state === 'online';
+        
+        // Toggle content visibility
+        const onlineContent = cardElement.querySelector('.online-content');
+        const offlineContent = cardElement.querySelector('.offline-content');
+        
+        onlineContent.style.display = isOnline ? 'block' : 'none';
+        offlineContent.style.display = isOnline ? 'none' : 'block';
+        
+        // Update state display
+        const stateText = cardElement.querySelector('.state-text');
+        const stateColor = this.getStateColor(state);
+        const stateMessage = this.getStateMessage(state);
+        
+        stateText.textContent = stateMessage;
+        stateText.style.color = stateColor;
+        
+        // Update progress
+        if (isOnline) {
+            this.updateSectionProgress(cardElement, sectionId);
+        }
+        
+        // Update timer info if applicable
+        this.updateTimerInfo(cardElement, sectionId);
+        
+        // Update card styling
+        cardElement.classList.toggle('online', isOnline);
+        cardElement.classList.toggle('offline', !isOnline);
+        cardElement.style.borderColor = stateColor;
+    }
+
+    populateUpgradePaths(cardElement, sectionId) {
+        const section = this.sections[sectionId];
+        const pathsContainer = cardElement.querySelector('.paths-container');
+        
+        ['research', 'offensive', 'defensive'].forEach(pathType => {
+            const pathElement = pathsContainer.querySelector(`.${pathType}-path`);
+            const upgradesList = pathElement.querySelector('.upgrades-list');
+            const pathProgress = pathElement.querySelector('.path-progress');
+            
+            // Clear existing upgrades
+            upgradesList.innerHTML = '';
+            
+            // Populate upgrades
+            const upgrades = section.paths[pathType];
+            const completedUpgrades = this.getCompletedUpgrades(sectionId, pathType);
+            
+            upgrades.forEach((upgrade, index) => {
+                const upgradeElement = this.createUpgradeItem(
+                    upgrade, 
+                    sectionId, 
+                    pathType, 
+                    index, 
+                    completedUpgrades.includes(index)
+                );
+                upgradesList.appendChild(upgradeElement);
+            });
+            
+            // Update path progress
+            pathProgress.textContent = `${completedUpgrades.length}/${upgrades.length}`;
+        });
+    }
+
+    createUpgradeItem(upgrade, sectionId, pathType, index, isCompleted) {
+        const template = document.getElementById('upgradeItemTemplate');
+        const item = template.content.cloneNode(true);
+        
+        const itemElement = item.querySelector('.upgrade-item');
+        itemElement.dataset.upgradeIndex = index;
+        itemElement.dataset.sectionId = sectionId;
+        itemElement.dataset.pathType = pathType;
+        
+        // Set upgrade info
+        const nameElement = item.querySelector('.upgrade-name');
+        nameElement.textContent = upgrade.name;
+        
+        const descElement = item.querySelector('.upgrade-description');
+        descElement.textContent = upgrade.description;
+        
+        // Set status
+        const statusElement = item.querySelector('.upgrade-status');
+        const canAfford = this.canAffordUpgrade(upgrade.cost);
+        
+        if (isCompleted) {
+            statusElement.textContent = 'Completed';
+            statusElement.className = 'upgrade-status status-completed';
+        } else if (canAfford) {
+            statusElement.textContent = 'Available';
+            statusElement.className = 'upgrade-status status-available';
+        } else {
+            statusElement.textContent = 'Locked';
+            statusElement.className = 'upgrade-status status-locked';
+        }
+        
+        // Populate costs
+        const costContainer = item.querySelector('.upgrade-cost');
+        this.populateUpgradeCost(costContainer, upgrade.cost);
+        
+        // Show/hide appropriate buttons
+        const purchaseBtn = item.querySelector('.purchase-btn');
+        const requestBtn = item.querySelector('.request-btn');
+        
+        if (this.userRole === 'gm') {
+            purchaseBtn.style.display = isCompleted ? 'none' : 'inline-block';
+            requestBtn.style.display = 'none';
+            purchaseBtn.disabled = !canAfford || isCompleted;
+        } else {
+            purchaseBtn.style.display = 'none';
+            requestBtn.style.display = isCompleted ? 'none' : 'inline-block';
+        }
+        
+        return itemElement;
+    }
+
+    populateUpgradeCost(container, costs) {
+        container.innerHTML = '';
+        
+        Object.entries(costs).forEach(([resource, amount]) => {
+            const template = document.getElementById('costItemTemplate');
+            const costItem = template.content.cloneNode(true);
+            
+            const iconElement = costItem.querySelector('.cost-icon');
+            const amountElement = costItem.querySelector('.cost-amount');
+            
+            iconElement.textContent = this.getResourceIcon(resource);
+            amountElement.textContent = amount;
+            
+            container.appendChild(costItem);
+        });
+    }
+
+    updateSectionProgress(cardElement, sectionId) {
+        const section = this.sections[sectionId];
+        const totalUpgrades = Object.values(section.paths).reduce((sum, path) => sum + path.length, 0);
+        const completedUpgrades = Object.values(this.getCompletedUpgrades(sectionId)).reduce((sum, upgrades) => sum + upgrades.length, 0);
+        
+        const progressFill = cardElement.querySelector('.progress-fill');
+        const progressText = cardElement.querySelector('.progress-text');
+        
+        const percentage = (completedUpgrades / totalUpgrades) * 100;
+        
+        progressFill.style.width = percentage + '%';
+        progressText.textContent = `${completedUpgrades}/${totalUpgrades}`;
+    }
+
+    updateTimerInfo(cardElement, sectionId) {
+        const timerElement = cardElement.querySelector('.timer-info');
+        const cleaningTimer = this.getCleaningTimer(sectionId);
+        
+        if (cleaningTimer) {
+            const remaining = this.getTimeRemaining(cleaningTimer.startTime, 72);
+            if (remaining) {
+                const hours = Math.floor(remaining / (60 * 60 * 1000));
+                const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                timerElement.textContent = `⏱️ ${hours}h ${minutes}m remaining`;
+            } else {
+                timerElement.textContent = '⏱️ Almost complete!';
+            }
+        } else {
+            timerElement.textContent = '';
+        }
+    }
+
+    setupEventListeners() {
+        // Set up global event listeners for section cards
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.path-header')) {
+                this.handlePathToggle(e.target.closest('.path-header'));
+            }
+        });
+    }
+
+    handlePathToggle(pathHeader) {
+        const pathElement = pathHeader.closest('.upgrade-path');
+        const upgradesList = pathElement.querySelector('.upgrades-list');
+        const toggleIcon = pathElement.querySelector('.path-toggle');
+        
+        const isExpanded = pathElement.classList.contains('expanded');
+        
+        if (isExpanded) {
+            pathElement.classList.remove('expanded');
+            upgradesList.style.maxHeight = '0';
+            toggleIcon.style.transform = 'rotate(0deg)';
+        } else {
+            pathElement.classList.add('expanded');
+            upgradesList.style.maxHeight = '1000px';
+            toggleIcon.style.transform = 'rotate(180deg)';
+        }
+    }
+
+    // Helper methods that would connect to the game state
+    getSectionState(sectionId) {
+        // This would get the actual section state from game state
+        return window.BastionApp?.gameState?.get(`sectionStates.${sectionId}`) || 'damaged';
+    }
+
+    getCompletedUpgrades(sectionId, pathType = null) {
+        if (pathType) {
+            return window.BastionApp?.gameState?.get(`upgrades.${sectionId}.${pathType}`) || [];
+        } else {
+            return window.BastionApp?.gameState?.get(`upgrades.${sectionId}`) || {
+                research: [],
+                offensive: [],
+                defensive: []
+            };
+        }
+    }
+
+    getCleaningTimer(sectionId) {
+        return window.BastionApp?.gameState?.get(`cleaningTimers.${sectionId}`);
+    }
+
+    canAffordUpgrade(costs) {
+        if (!window.BastionApp?.gameState) return false;
+        
+        for (const [resource, amount] of Object.entries(costs)) {
+            const current = window.BastionApp.gameState.get(`resources.${resource}`) || 0;
+            if (current < amount) return false;
+        }
+        return true;
+    }
+
+    getTimeRemaining(startTime, durationHours) {
+        const now = Date.now();
+        const elapsed = now - startTime;
+        const totalDuration = durationHours * 60 * 60 * 1000;
+        const remaining = totalDuration - elapsed;
+        
+        return remaining > 0 ? remaining : null;
+    }
+
+    getStateColor(state) {
+        const colors = {
+            'damaged': 'var(--red)',
+            'cleaning': 'var(--gold)',
+            'cleaned': 'var(--cyan)',
+            'online': 'var(--green)'
+        };
+        return colors[state] || 'var(--text-secondary)';
+    }
+
+    getStateMessage(state) {
+        const messages = {
+            'damaged': 'DAMAGED - Needs Cleaning',
+            'cleaning': 'CLEANING - In Progress',
+            'cleaned': 'CLEANED - Needs Repair',
+            'online': 'ONLINE - Ready for Upgrades'
+        };
+        return messages[state] || 'UNKNOWN';
+    }
+
+    getResourceIcon(resource) {
+        const icons = {
+            'celestial-power': '⚡',
+            'celestial-silver': '🥈',
+            'runic-shards': '💎',
+            'divine-essence': '✨',
+            'technical-expertise': '🔬'
+        };
+        return icons[resource] || '?';
+    }
+
+    // Public methods for external use
+    refreshSection(sectionId) {
+        const cardElement = this.container.querySelector(`[data-section-id="${sectionId}"]`);
+        if (cardElement) {
+            this.updateSectionState(cardElement, sectionId);
+            if (this.getSectionState(sectionId) === 'online') {
+                this.populateUpgradePaths(cardElement, sectionId);
+            }
+        }
+    }
+
+    refreshAllSections() {
+        Object.keys(this.sections).forEach(sectionId => {
+            this.refreshSection(sectionId);
+        });
+    }
+}
+
+// Global section card manager instance
+window.sectionCardManager = new SectionCardManager();
+
+// Global functions called by onclick handlers
+function togglePath(pathHeader) {
+    window.sectionCardManager.handlePathToggle(pathHeader);
+}
+
+function purchaseUpgrade(button) {
+    const upgradeItem = button.closest('.upgrade-item');
+    const sectionId = upgradeItem.dataset.sectionId;
+    const pathType = upgradeItem.dataset.pathType;
+    const upgradeIndex = parseInt(upgradeItem.dataset.upgradeIndex);
+    
+    if (window.BastionApp?.sections) {
+        window.BastionApp.sections.purchaseUpgrade(sectionId, pathType, upgradeIndex);
+    }
+}
+
+function requestUpgrade(button) {
+    const upgradeItem = button.closest('.upgrade-item');
+    const sectionId = upgradeItem.dataset.sectionId;
+    const pathType = upgradeItem.dataset.pathType;
+    const upgradeIndex = parseInt(upgradeItem.dataset.upgradeIndex);
+    
+    if (window.BastionApp?.sections) {
+        window.BastionApp.sections.requestUpgrade(sectionId, pathType, upgradeIndex);
+    }
+}
+
+function startCleaning(button) {
+    const sectionId = button.closest('.section-card').dataset.sectionId;
+    if (window.BastionApp?.sections) {
+        window.BastionApp.sections.startCleaning(sectionId);
+    }
+}
+
+function repairSection(button) {
+    const sectionId = button.closest('.section-card').dataset.sectionId;
+    if (window.BastionApp?.sections) {
+        window.BastionApp.sections.repairSection(sectionId);
+    }
+}
+
+function forceComplete(button) {
+    const sectionId = button.closest('.section-card').dataset.sectionId;
+    if (window.BastionApp?.sections) {
+        window.BastionApp.sections.forceComplete(sectionId);
+    }
+}
+
+function damageSection(button) {
+    const sectionId = button.closest('.section-card').dataset.sectionId;
+    if (window.BastionApp?.sections) {
+        window.BastionApp.sections.damageSection(sectionId);
+    }
+}
+</script>
