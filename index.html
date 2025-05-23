@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Bastion - Ultimate TTRPG Management</title>
+    <title>The Bastion - Celestial Fortress Management</title>
     
     <!-- External Dependencies -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -20,36 +20,113 @@
 <body>
     <div class="background-animation"></div>
     
-    <!-- Login Screen Container -->
-    <div id="loginScreen" class="login-container">
-        <!-- Login content will be loaded here -->
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-fortress"></i> THE BASTION</h1>
+            <p class="subtitle">Celestial Fortress Management System</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="icon">🟢</span>
+                <div class="label">System Status</div>
+                <div class="value">ONLINE</div>
+            </div>
+            <div class="status-item">
+                <span class="icon">⚡</span>
+                <div class="label">Power Level</div>
+                <div class="value" id="power-level">85%</div>
+            </div>
+            <div class="status-item">
+                <span class="icon">🛡️</span>
+                <div class="label">Defenses</div>
+                <div class="value">ACTIVE</div>
+            </div>
+            <div class="status-item">
+                <span class="icon">👥</span>
+                <div class="label">Players</div>
+                <div class="value">4</div>
+            </div>
+        </div>
+
+        <div class="efficiency-bonus">
+            <div class="efficiency-value" id="efficiency-display">+0%</div>
+            <div class="efficiency-source" id="efficiency-source">No active bonuses</div>
+        </div>
+
+        <div class="main-grid">
+            <div class="sidebar">
+                <h2><i class="fas fa-coins"></i> Resources</h2>
+                <div class="resource-item">
+                    <div class="resource-info">
+                        <span class="resource-icon">⚡</span>
+                        <span class="resource-name">Celestial Power</span>
+                    </div>
+                    <div class="resource-amount">
+                        <span class="resource-value" id="celestial-power">1250</span>
+                        <input type="number" class="resource-input" id="celestial-power-input" value="1250" onchange="updateResource('celestial-power', this.value)">
+                    </div>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-info">
+                        <span class="resource-icon">🥈</span>
+                        <span class="resource-name">Celestial Silver</span>
+                    </div>
+                    <div class="resource-amount">
+                        <span class="resource-value" id="celestial-silver">85</span>
+                        <input type="number" class="resource-input" id="celestial-silver-input" value="85" onchange="updateResource('celestial-silver', this.value)">
+                    </div>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-info">
+                        <span class="resource-icon">💎</span>
+                        <span class="resource-name">Runic Shards</span>
+                    </div>
+                    <div class="resource-amount">
+                        <span class="resource-value" id="runic-shards">12</span>
+                        <input type="number" class="resource-input" id="runic-shards-input" value="12" onchange="updateResource('runic-shards', this.value)">
+                    </div>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-info">
+                        <span class="resource-icon">✨</span>
+                        <span class="resource-name">Divine Essence</span>
+                    </div>
+                    <div class="resource-amount">
+                        <span class="resource-value" id="divine-essence">3</span>
+                        <input type="number" class="resource-input" id="divine-essence-input" value="3" onchange="updateResource('divine-essence', this.value)">
+                    </div>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-info">
+                        <span class="resource-icon">🔬</span>
+                        <span class="resource-name">Tech Expertise</span>
+                    </div>
+                    <div class="resource-amount">
+                        <span class="resource-value" id="technical-expertise">5</span>
+                        <input type="number" class="resource-input" id="technical-expertise-input" value="5" onchange="updateResource('technical-expertise', this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content" id="sections-container">
+                <!-- Sections will be dynamically generated -->
+            </div>
+        </div>
+
+        <div class="mission-log">
+            <h2><i class="fas fa-scroll"></i> Mission Log</h2>
+            <div class="mission-entry">
+                <strong>2025-05-22:</strong> Angel Contact Mission - Acquired 1 Divine Essence through diplomatic contact
+            </div>
+            <div class="mission-entry">
+                <strong>2025-05-21:</strong> Void Scan Research - Found 3 Runic Shards in astral debris field
+            </div>
+            <div class="mission-entry">
+                <strong>2025-05-20:</strong> Defense Protocol - Successfully repelled corruption attack, gained 100 Celestial Power
+            </div>
+        </div>
     </div>
-
-    <!-- Main Application Container -->
-    <div id="mainApp" class="app-container">
-        <!-- Top Navigation -->
-        <nav id="topNav" class="top-nav">
-            <!-- Navigation content will be loaded here -->
-        </nav>
-
-        <!-- GM Dashboard -->
-        <div id="gmDashboard" class="gm-dashboard">
-            <!-- GM dashboard content will be loaded here -->
-        </div>
-
-        <!-- Player Dashboard -->
-        <div id="playerDashboard" class="player-dashboard">
-            <!-- Player dashboard content will be loaded here -->
-        </div>
-
-        <!-- Shared Bastion Sections -->
-        <div id="sectionsContainer" class="sections-grid">
-            <!-- Section cards will be dynamically generated -->
-        </div>
-    </div>
-
-    <!-- Notification System -->
-    <div id="notification" class="notification"></div>
 
     <!-- JavaScript Modules -->
     <script type="module" src="js/main.js"></script>
