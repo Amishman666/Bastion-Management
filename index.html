@@ -1,4 +1,11 @@
-<!DOCTYPE html>
+function updateCompanionCount() {
+            // Jon (1) + all available NPCs
+            const companionCount = 1 + (gameState.npcs ? gameState.npcs.length : 0);
+            const companionElement = document.getElementById('companion-count');
+            if (companionElement) {
+                companionElement.textContent = companionCount;
+            }
+        }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1125,8 +1132,8 @@
                 </div>
                 <div class="status-item">
                     <span class="icon">👥</span>
-                    <div class="label">Players</div>
-                    <div class="value">4</div>
+                    <div class="label">Companions</div>
+                    <div class="value" id="companion-count">1</div>
                 </div>
             </div>
 
@@ -1675,6 +1682,7 @@
             renderMissions();
             renderNPCs();
             renderPlayerMissions();
+            updateCompanionCount();
             
             // Start timer system
             setInterval(updateTimers, 60000); // Update every minute
@@ -2384,6 +2392,7 @@
             
             gameState.npcs.push(npc);
             renderNPCs();
+            updateCompanionCount();
             
             // Clear form
             document.getElementById('npcName').value = '';
@@ -2454,6 +2463,7 @@
             if (confirm('Are you sure you want to delete this NPC?')) {
                 gameState.npcs = gameState.npcs.filter(n => n.id !== npcId);
                 renderNPCs();
+                updateCompanionCount();
                 saveGameState();
             }
         }
@@ -2672,8 +2682,9 @@
             renderNPCs();
             renderPlayerMissions();
             
-            // Update power level
+            // Update power level and companion count
             updatePowerLevel();
+            updateCompanionCount();
             
             // Update all upgrade states
             updateAllUpgradeStates();
@@ -2779,6 +2790,9 @@
                     document.getElementById(resource).textContent = gameState.resources[resource];
                     document.getElementById(resource + '-input').value = gameState.resources[resource];
                 });
+                
+                // Update companion count
+                updateCompanionCount();
             }
         }
 
