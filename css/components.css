@@ -1,150 +1,158 @@
-/* Reusable Components for The Bastion */
+/* Section-specific Styles for The Bastion */
 
-/* Progress Bars */
-.progress-bar {
-    width: 100px;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
-    position: relative;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--gold), var(--cyan));
-    border-radius: 4px;
-    transition: width var(--transition-slow);
-    position: relative;
-}
-
-.progress-fill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    animation: progressShine 2s ease-in-out infinite;
-}
-
-@keyframes progressShine {
-    0% { left: -100%; }
-    100% { left: 100%; }
-}
-
-.progress-text {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    font-weight: 600;
-}
-
-/* Buttons */
-.purchase-btn {
-    background: linear-gradient(45deg, var(--gold), var(--gold-dark));
-    color: #000;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition-normal);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-size: 0.8rem;
-}
-
-.purchase-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-}
-
-.purchase-btn:disabled {
-    background: #666;
-    color: #999;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-/* Input Fields */
-.resource-input {
-    background: rgba(255, 255, 255, 0.1);
+/* Section Cards */
+.section-card {
+    background: linear-gradient(135deg, var(--secondary-bg), var(--accent-bg));
     border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 4px 8px;
-    color: white;
-    width: 80px;
-    text-align: center;
-    margin-top: 4px;
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    box-shadow: var(--glow);
+    transition: var(--transition-normal);
+    position: relative;
+    overflow: hidden;
 }
 
-.resource-input:focus {
-    outline: none;
-    border-color: var(--gold);
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+.section-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(255, 215, 0, 0.2), var(--glow);
 }
 
-/* Status Indicators */
-.upgrade-status {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.status-available {
-    background: var(--green);
-    color: #000;
-    box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
-}
-
-.status-locked {
-    background: var(--red);
-    color: white;
-}
-
-.status-completed {
-    background: var(--gold);
-    color: #000;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-}
-
-/* Efficiency Bonus Display */
-.efficiency-bonus {
-    background: linear-gradient(45deg, rgba(0, 212, 255, 0.2), rgba(0, 212, 255, 0.1));
-    border: 1px solid var(--cyan);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-    text-align: center;
-}
-
-.efficiency-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--cyan);
-    margin-bottom: var(--spacing-xs);
-}
-
-.efficiency-source {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-/* Cost Display */
-.upgrade-cost {
+.section-header {
     display: flex;
-    gap: var(--spacing-md);
-    font-size: 0.9rem;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border);
 }
 
-.cost-item {
+.section-title {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gold);
+}
+
+.section-progress {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-sm);
+}
+
+/* Upgrade Paths */
+.paths-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.path {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: var(--transition-normal);
+}
+
+.path:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border);
+}
+
+.path-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) var(--spacing-lg);
+    cursor: pointer;
+    transition: var(--transition-normal);
+    position: relative;
+}
+
+.path-header:hover {
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.path-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* Path Type Colors */
+.path.research .path-name { 
+    color: var(--cyan); 
+}
+
+.path.offensive .path-name { 
+    color: var(--red); 
+}
+
+.path.defensive .path-name { 
+    color: var(--green); 
+}
+
+.path-toggle {
+    font-size: 0.8rem;
     color: var(--text-secondary);
+    transition: transform var(--transition-normal);
+}
+
+.path.expanded .path-toggle {
+    transform: rotate(180deg);
+}
+
+/* Upgrades List */
+.upgrades-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-normal);
+}
+
+.path.expanded .upgrades-list {
+    max-height: 1000px;
+}
+
+/* Individual Upgrade Items */
+.upgrade-item {
+    background: rgba(255, 255, 255, 0.02);
+    margin: 0 var(--spacing-md) var(--spacing-md) var(--spacing-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--spacing-sm);
+    padding: 18px;
+    transition: var(--transition-normal);
+    position: relative;
+}
+
+.upgrade-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateX(5px);
+}
+
+.upgrade-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-sm);
+}
+
+.upgrade-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+}
+
+.upgrade-description {
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--spacing-md);
+    font-size: 0.95rem;
+}
+
+.upgrade-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
