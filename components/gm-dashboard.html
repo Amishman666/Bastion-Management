@@ -1,0 +1,448 @@
+<!-- components/gm-dashboard.html - Game Master Dashboard Component -->
+<div class="gm-controls">
+    <!-- Resource Management Panel -->
+    <div class="gm-panel">
+        <h3><i class="fas fa-coins"></i> Resource Management</h3>
+        
+        <div class="resource-list">
+            <div class="resource-control">
+                <span class="resource-label">⚡ Celestial Power</span>
+                <input type="number" id="gm-celestial-power" value="1250" onchange="BastionApp.updateGlobalResource('celestial-power', this.value)" class="resource-input">
+                <span class="resource-capacity" id="power-capacity">/ 2000</span>
+            </div>
+            
+            <div class="resource-control">
+                <span class="resource-label">🥈 Celestial Silver</span>
+                <input type="number" id="gm-celestial-silver" value="85" onchange="BastionApp.updateGlobalResource('celestial-silver', this.value)" class="resource-input">
+            </div>
+            
+            <div class="resource-control">
+                <span class="resource-label">💎 Runic Shards</span>
+                <input type="number" id="gm-runic-shards" value="12" onchange="BastionApp.updateGlobalResource('runic-shards', this.value)" class="resource-input">
+            </div>
+            
+            <div class="resource-control">
+                <span class="resource-label">✨ Divine Essence</span>
+                <input type="number" id="gm-divine-essence" value="3" onchange="BastionApp.updateGlobalResource('divine-essence', this.value)" class="resource-input">
+            </div>
+            
+            <div class="resource-control calculated">
+                <span class="resource-label">🔬 Tech Expertise</span>
+                <span id="calculated-tech-expertise" class="calculated-value">Calculated from NPCs</span>
+            </div>
+        </div>
+        
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="BastionApp.addDailyResources()">
+                <i class="fas fa-plus"></i> Daily Generation
+            </button>
+            <button class="quick-btn danger" onclick="BastionApp.resetResources()">
+                <i class="fas fa-trash"></i> Reset Resources
+            </button>
+        </div>
+    </div>
+
+    <!-- NPC Management Panel -->
+    <div class="gm-panel">
+        <h3><i class="fas fa-users"></i> NPC Management</h3>
+        
+        <div id="npcList" class="npc-list">
+            <!-- NPCs will be populated here by JavaScript -->
+        </div>
+        
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="BastionApp.createNPC()">
+                <i class="fas fa-user-plus"></i> Create NPC
+            </button>
+            <button class="quick-btn" onclick="BastionApp.quickCreateNPC()">
+                <i class="fas fa-dice"></i> Quick Random
+            </button>
+            <button class="quick-btn danger" onclick="BastionApp.removeSelectedNPC()">
+                <i class="fas fa-user-minus"></i> Remove NPC
+            </button>
+            <button class="quick-btn" onclick="BastionApp.manageItems()">
+                <i class="fas fa-box"></i> Manage Items
+            </button>
+        </div>
+        
+        <div class="npc-stats">
+            <strong>Quick Stats:</strong> 
+            Active: <span id="activeNPCCount">2</span> | 
+            Total Tech: <span id="totalTechFromNPCs">7</span> | 
+            Average Loyalty: <span id="avgLoyalty">88%</span>
+        </div>
+    </div>
+
+    <!-- Section Management Panel -->
+    <div class="gm-panel">
+        <h3><i class="fas fa-wrench"></i> Section Management</h3>
+        
+        <div id="sectionManagement" class="section-management">
+            <!-- Section states will be populated here by JavaScript -->
+        </div>
+        
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="BastionApp.repairAllSections()">
+                <i class="fas fa-tools"></i> Emergency Repair All
+            </button>
+            <button class="quick-btn danger" onclick="BastionApp.damageRandomSection()">
+                <i class="fas fa-exclamation-triangle"></i> Random Damage Event
+            </button>
+        </div>
+    </div>
+
+    <!-- System Controls Panel -->
+    <div class="gm-panel">
+        <h3><i class="fas fa-cogs"></i> System Controls</h3>
+        
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="BastionApp.saveGameState()">
+                <i class="fas fa-save"></i> Save Game State
+            </button>
+            <button class="quick-btn" onclick="BastionApp.loadGameState()">
+                <i class="fas fa-upload"></i> Load Backup
+            </button>
+            <button class="quick-btn danger" onclick="BastionApp.resetCampaign()">
+                <i class="fas fa-redo"></i> Reset Campaign
+            </button>
+            <button class="quick-btn" onclick="BastionApp.exportData()">
+                <i class="fas fa-download"></i> Export Data
+            </button>
+        </div>
+        
+        <div class="campaign-stats">
+            <strong>Campaign Stats:</strong><br>
+            <span id="campaignStats">NPCs: 2 | Active Missions: 2 | Power Efficiency: 87%</span>
+        </div>
+    </div>
+
+    <!-- Enhanced Mission Management Panel - Full Width -->
+    <div class="gm-panel mission-management-panel">
+        <h3><i class="fas fa-scroll"></i> Enhanced Mission Management</h3>
+        
+        <!-- Mission Creator Section -->
+        <div class="mission-creator-container">
+            <h4 class="section-title">Create New Mission</h4>
+            
+            <div class="mission-form-grid">
+                <!-- Title and Type Row -->
+                <div class="form-row">
+                    <div class="form-group title-group">
+                        <label for="mission-title" class="form-label">Mission Title</label>
+                        <input 
+                            type="text" 
+                            id="mission-title" 
+                            class="mission-input" 
+                            placeholder="Enter mission title..."
+                            required
+                        >
+                    </div>
+                    <div class="form-group type-group">
+                        <label for="mission-type" class="form-label">Mission Type</label>
+                        <select id="mission-type" class="mission-select">
+                            <option value="Stealth">Stealth</option>
+                            <option value="Combat">Combat</option>
+                            <option value="Tech">Tech</option>
+                            <option value="Social">Social</option>
+                            <option value="Research">Research</option>
+                            <option value="Mixed">Mixed</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Description Row -->
+                <div class="form-row">
+                    <div class="form-group description-group">
+                        <label for="mission-description" class="form-label">Mission Description</label>
+                        <textarea 
+                            id="mission-description" 
+                            class="mission-textarea" 
+                            placeholder="Describe the mission objectives and context..."
+                            rows="3"
+                            required
+                        ></textarea>
+                    </div>
+                </div>
+                
+                <!-- Rewards Section -->
+                <div class="rewards-section">
+                    <h5 class="rewards-title">Mission Rewards</h5>
+                    <div class="rewards-grid">
+                        <div class="reward-input-group">
+                            <label for="reward-celestial-silver" class="reward-label">🥈 Celestial Silver</label>
+                            <input 
+                                type="number" 
+                                id="reward-celestial-silver" 
+                                class="reward-input" 
+                                placeholder="0" 
+                                min="0"
+                            >
+                        </div>
+                        <div class="reward-input-group">
+                            <label for="reward-runic-shards" class="reward-label">💎 Runic Shards</label>
+                            <input 
+                                type="number" 
+                                id="reward-runic-shards" 
+                                class="reward-input" 
+                                placeholder="0" 
+                                min="0"
+                            >
+                        </div>
+                        <div class="reward-input-group">
+                            <label for="reward-divine-essence" class="reward-label">✨ Divine Essence</label>
+                            <input 
+                                type="number" 
+                                id="reward-divine-essence" 
+                                class="reward-input" 
+                                placeholder="0" 
+                                min="0"
+                            >
+                        </div>
+                    </div>
+                    <div class="reward-note">
+                        💡 These rewards will be automatically applied based on mission success level
+                    </div>
+                </div>
+                
+                <!-- Create Button -->
+                <button class="create-mission-btn quick-btn" onclick="BastionApp.createEnhancedMission()">
+                    <i class="fas fa-plus"></i> Create Mission
+                </button>
+            </div>
+        </div>
+        
+        <!-- Active Missions Section -->
+        <div class="active-missions-container">
+            <h4 class="section-title">Active Missions</h4>
+            
+            <div id="activeMissionsList" class="missions-list">
+                <!-- Active missions will be populated here by JavaScript -->
+            </div>
+            
+            <div class="mission-actions">
+                <button class="mission-action-btn quick-btn" onclick="BastionApp.resolveMissions()">
+                    <i class="fas fa-check"></i> Resolve Selected
+                </button>
+                <button class="mission-action-btn quick-btn danger" onclick="BastionApp.removeSelectedMission()">
+                    <i class="fas fa-trash"></i> Remove Selected
+                </button>
+                <button class="mission-action-btn quick-btn" onclick="BastionApp.clearCompletedMissions()">
+                    <i class="fas fa-broom"></i> Clear Completed
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GM Dashboard Specific JavaScript -->
+<script>
+// GM Dashboard initialization and utilities
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize GM dashboard if we're in GM mode
+    if (window.BastionApp && window.BastionApp.userRole === 'gm') {
+        initializeGMDashboard();
+    }
+});
+
+function initializeGMDashboard() {
+    console.log('🎮 Initializing GM Dashboard...');
+    
+    // Set up real-time updates
+    startGMUpdates();
+    
+    // Initialize tooltips
+    initializeTooltips();
+    
+    // Set up keyboard shortcuts specific to GM
+    setupGMKeyboardShortcuts();
+}
+
+function startGMUpdates() {
+    // Update GM-specific displays every 30 seconds
+    setInterval(() => {
+        updateCampaignStats();
+        updateNPCStats();
+        updatePowerCapacity();
+    }, 30000);
+}
+
+function updateCampaignStats() {
+    const statsElement = document.getElementById('campaignStats');
+    if (!statsElement || !window.BastionApp) return;
+    
+    try {
+        const gameState = window.BastionApp.gameState;
+        const activeNPCs = gameState.get('npcs').filter(npc => 
+            npc.status === 'available' || npc.status === 'deployed'
+        ).length;
+        
+        const activeMissions = gameState.get('missions').filter(m => 
+            m.status === 'available' || m.status === 'in-progress'
+        ).length;
+        
+        const onlineSections = Object.values(gameState.get('sectionStates')).filter(
+            state => state === 'online'
+        ).length;
+        
+        const totalCapacity = gameState.get('totalCelestialPowerCapacity');
+        const currentDrain = gameState.get('currentCelestialPowerDrain');
+        const powerEfficiency = Math.round(((totalCapacity - currentDrain) / totalCapacity) * 100);
+        
+        statsElement.textContent = `NPCs: ${activeNPCs} | Active Missions: ${activeMissions} | Online Sections: ${onlineSections}/6 | Power Efficiency: ${powerEfficiency}%`;
+    } catch (error) {
+        console.error('Error updating campaign stats:', error);
+    }
+}
+
+function updateNPCStats() {
+    const activeElement = document.getElementById('activeNPCCount');
+    const techElement = document.getElementById('totalTechFromNPCs');
+    const loyaltyElement = document.getElementById('avgLoyalty');
+    
+    if (!window.BastionApp || !activeElement || !techElement || !loyaltyElement) return;
+    
+    try {
+        const npcs = window.BastionApp.gameState.get('npcs');
+        
+        const activeCount = npcs.filter(npc => 
+            npc.status === 'available' || npc.status === 'deployed'
+        ).length;
+        
+        const totalTech = npcs.reduce((sum, npc) => 
+            sum + (npc.status === 'available' || npc.status === 'deployed' ? npc.tech : 0), 0
+        );
+        
+        const avgLoyalty = npcs.length > 0 ? 
+            Math.round(npcs.reduce((sum, npc) => sum + npc.loyalty, 0) / npcs.length) : 0;
+        
+        activeElement.textContent = activeCount;
+        techElement.textContent = totalTech;
+        loyaltyElement.textContent = avgLoyalty + '%';
+    } catch (error) {
+        console.error('Error updating NPC stats:', error);
+    }
+}
+
+function updatePowerCapacity() {
+    const powerDisplay = document.getElementById('power-capacity');
+    if (!powerDisplay || !window.BastionApp) return;
+    
+    try {
+        const gameState = window.BastionApp.gameState;
+        const totalCapacity = gameState.get('totalCelestialPowerCapacity');
+        const currentDrain = gameState.get('currentCelestialPowerDrain');
+        const effectiveCapacity = totalCapacity - currentDrain;
+        
+        powerDisplay.textContent = `/ ${effectiveCapacity}${currentDrain > 0 ? ` (drain: ${Math.round(currentDrain)})` : ''}`;
+    } catch (error) {
+        console.error('Error updating power capacity:', error);
+    }
+}
+
+function initializeTooltips() {
+    // Add tooltips to various elements
+    const tooltipElements = [
+        { selector: '#calculated-tech-expertise', text: 'Automatically calculated from active NPCs and their equipment' },
+        { selector: '.npc-stats', text: 'Live statistics updated every 30 seconds' },
+        { selector: '.campaign-stats', text: 'Overall campaign health and status metrics' }
+    ];
+    
+    tooltipElements.forEach(({ selector, text }) => {
+        const element = document.querySelector(selector);
+        if (element) {
+            element.title = text;
+        }
+    });
+}
+
+function setupGMKeyboardShortcuts() {
+    document.addEventListener('keydown', function(e) {
+        // GM-specific shortcuts
+        if (e.ctrlKey && e.shiftKey) {
+            switch(e.key) {
+                case 'N':
+                    e.preventDefault();
+                    if (window.BastionApp) window.BastionApp.quickCreateNPC();
+                    break;
+                case 'M':
+                    e.preventDefault();
+                    document.getElementById('mission-title')?.focus();
+                    break;
+                case 'R':
+                    e.preventDefault();
+                    if (window.BastionApp) window.BastionApp.addDailyResources();
+                    break;
+            }
+        }
+    });
+}
+
+// Form validation for mission creation
+document.addEventListener('DOMContentLoaded', function() {
+    const missionForm = document.querySelector('.mission-form-grid');
+    if (missionForm) {
+        const titleInput = document.getElementById('mission-title');
+        const descInput = document.getElementById('mission-description');
+        
+        // Real-time validation
+        [titleInput, descInput].forEach(input => {
+            if (input) {
+                input.addEventListener('input', validateMissionForm);
+            }
+        });
+    }
+});
+
+function validateMissionForm() {
+    const title = document.getElementById('mission-title')?.value.trim();
+    const description = document.getElementById('mission-description')?.value.trim();
+    const createBtn = document.querySelector('.create-mission-btn');
+    
+    if (createBtn) {
+        const isValid = title && description;
+        createBtn.disabled = !isValid;
+        createBtn.classList.toggle('disabled', !isValid);
+    }
+}
+
+// Auto-save form data
+function autoSaveMissionForm() {
+    const formData = {
+        title: document.getElementById('mission-title')?.value || '',
+        type: document.getElementById('mission-type')?.value || 'Stealth',
+        description: document.getElementById('mission-description')?.value || '',
+        rewards: {
+            'celestial-silver': parseInt(document.getElementById('reward-celestial-silver')?.value) || 0,
+            'runic-shards': parseInt(document.getElementById('reward-runic-shards')?.value) || 0,
+            'divine-essence': parseInt(document.getElementById('reward-divine-essence')?.value) || 0
+        }
+    };
+    
+    localStorage.setItem('bastion-mission-draft', JSON.stringify(formData));
+}
+
+function loadMissionFormDraft() {
+    const draft = localStorage.getItem('bastion-mission-draft');
+    if (draft) {
+        try {
+            const data = JSON.parse(draft);
+            if (data.title) document.getElementById('mission-title').value = data.title;
+            if (data.type) document.getElementById('mission-type').value = data.type;
+            if (data.description) document.getElementById('mission-description').value = data.description;
+            if (data.rewards) {
+                if (data.rewards['celestial-silver']) document.getElementById('reward-celestial-silver').value = data.rewards['celestial-silver'];
+                if (data.rewards['runic-shards']) document.getElementById('reward-runic-shards').value = data.rewards['runic-shards'];
+                if (data.rewards['divine-essence']) document.getElementById('reward-divine-essence').value = data.rewards['divine-essence'];
+            }
+        } catch (e) {
+            console.warn('Failed to load mission form draft:', e);
+        }
+    }
+}
+
+// Auto-save mission form every 5 seconds
+setInterval(autoSaveMissionForm, 5000);
+
+// Load draft on page load
+document.addEventListener('DOMContentLoaded', loadMissionFormDraft);
+</script>
