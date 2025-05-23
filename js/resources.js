@@ -1,531 +1,188 @@
-// js/resources.js - Resource Management Module
-
-import { ValidationUtils, MathUtils } from './utils.js';
+/**
+ * Resource Management for The Bastion
+ * Handles all resource-related operations and display updates
+ */
 
 export class ResourceManager {
     constructor(gameState) {
         this.gameState = gameState;
-        this.resourceIcons = {
-            'celestial-power': '⚡',
-            'celestial-silver': '🥈',
-            'runic-shards': '💎',
-            'divine-essence': '✨',
-            'technical-expertise': '🔬'
+        this.resources = {
+            'celestial-power': {
+                name: 'Celestial Power',
+                icon: '⚡',
+                description: 'Primary energy source for the Bastion'
+            },
+            'celestial-silver': {
+                name: 'Celestial Silver',
+                icon: '🥈',
+                description: 'Rare metal for advanced construction'
+            },
+            'runic-shards': {
+                name: 'Runic Shards',
+                icon: '💎',
+                description: 'Crystallized magical energy'
+            },
+            'divine-essence': {
+                name: 'Divine Essence',
+                icon: '✨',
+                description: 'Pure divine power'
+            },
+            'technical-expertise': {
+                name: 'Tech Expertise',
+                icon: '🔬',
+                description: 'Knowledge and skill points'
+            }
         };
-        
-        this.resourceNames = {
-            'celestial-power': 'Celestial Power',
-            'celestial-silver': 'Celestial Silver',
-            'runic-shards': 'Runic Shards',
-            'divine-essence': 'Divine Essence',
-            'technical-expertise': 'Technical Expertise'
-        };
-        
-        this.resourceLimits = {
-            'celestial-power': 999999,
-            'celestial-silver': 999999,
-            'runic-shards': 99999,
-            'divine-essence': 9999,
-            'technical-expertise': 999
-        };
-        
-        this.dailyGenerationRates = {
-            'celestial-power': 50,
-            'celestial-silver': 10,
-            'runic-shards': 0,
-            'divine-essence': 0,
-            'technical-expertise': 0 // Calculated from NPCs
-        };
-        
-        this.init();
     }
 
     init() {
-        // Calculate technical expertise from NPCs
-        this.calculateTechExpertise();
-        
-        // Set up auto-save for resource changes
-        this.gameState.onChange((changes) => {
-            if (changes.includes('resources') || changes.includes('npcs')) {
-                this.updateAllResourceDisplays();
-            }
-        });
-        
-        // Set up daily generation timer (for demo purposes, run every minute)
-        if (this.gameState.get('settings.autoGeneration') !== false) {
-            setInterval(() => this.checkDailyGeneration(), 60000);
-        }
+        this.updateAllDisplays();
+        this.setupEventListeners();
     }
 
-    /**
-     * Get current resource amount
-     */
-    getResource(resourceType) {
-        return this.gameState.get(`resources.${resourceType}`) || 0;
-    }
+    setupEventListeners() {
+        // Listen for manual resource input changes
+        Object.keys(this.resources).forEach(resourceId => {
+            const input = document.getElementById(`${resourceId}-input`);
+            if (input) {
+                input.addEventListener('change', (e) => {
+                    this.updateResource(resourceId, e.target.value);
+                });
 
-    /**
-     * Set resource amount (with validation)
-     */
-    setResource(resourceType, amount, skipValidation = false) {
-        if (!skipValidation) {
-            if (!this.isValidResourceType(resourceType)) {
-                throw new Error(`Invalid resource type: ${resourceType}`);
-            }
-            
-            if (!ValidationUtils.validateResourceAmount(amount)) {
-                throw new Error(`Invalid resource amount: ${amount}`);
-            }
-            
-            amount = Math.min(amount, this.resourceLimits[resourceType]);
-            amount = Math.max(amount, 0);
-        }
-        
-        const oldAmount = this.getResource(resourceType);
-        this.gameState.set(`resources.${resourceType}`, amount);
-        
-        this.logResourceChange(resourceType, oldAmount, amount);
-        return amount;
-    }
-
-    /**
-     * Add resources (with overflow protection)
-     */
-    addResource(resourceType, amount) {
-        const current = this.getResource(resourceType);
-        const newAmount = current + amount;
-        return this.setResource(resourceType, newAmount);
-    }
-
-    /**
-     * Subtract resources (with underflow protection)
-     */
-    subtractResource(resourceType, amount) {
-        const current = this.getResource(resourceType);
-        const newAmount = Math.max(0, current - amount);
-        return this.setResource(resourceType, newAmount);
-    }
-
-    /**
-     * Check if player can afford a cost
-     */
-    canAfford(costs) {
-        for (const [resourceType, amount] of Object.entries(costs)) {
-            if (this.getResource(resourceType) < amount) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Get missing resources for a cost
-     */
-    getMissingResources(costs) {
-        const missing = {};
-        
-        for (const [resourceType, amount] of Object.entries(costs)) {
-            const current = this.getResource(resourceType);
-            if (current < amount) {
-                missing[resourceType] = amount - current;
-            }
-        }
-        
-        return missing;
-    }
-
-    /**
-     * Spend resources if possible
-     */
-    spendResources(costs, description = 'Unknown') {
-        if (!this.canAfford(costs)) {
-            const missing = this.getMissingResources(costs);
-            throw new Error(`Insufficient resources. Missing: ${this.formatResourceList(missing)}`);
-        }
-        
-        const spentResources = {};
-        
-        for (const [resourceType, amount] of Object.entries(costs)) {
-            const oldAmount = this.getResource(resourceType);
-            const newAmount = this.subtractResource(resourceType, amount);
-            spentResources[resourceType] = oldAmount - newAmount;
-        }
-        
-        this.gameState.logActivity(`Spent resources for ${description}: ${this.formatResourceList(spentResources)}`);
-        return spentResources;
-    }
-
-    /**
-     * Award resources
-     */
-    awardResources(rewards, description = 'Unknown') {
-        const awardedResources = {};
-        
-        for (const [resourceType, amount] of Object.entries(rewards)) {
-            if (amount > 0) {
-                const oldAmount = this.getResource(resourceType);
-                const newAmount = this.addResource(resourceType, amount);
-                awardedResources[resourceType] = newAmount - oldAmount;
-            }
-        }
-        
-        if (Object.keys(awardedResources).length > 0) {
-            this.gameState.logActivity(`Awarded resources for ${description}: ${this.formatResourceList(awardedResources)}`);
-        }
-        
-        return awardedResources;
-    }
-
-    /**
-     * Calculate technical expertise from NPCs
-     */
-    calculateTechExpertise() {
-        const npcs = this.gameState.get('npcs') || [];
-        let totalTech = 0;
-        
-        npcs.forEach(npc => {
-            if (npc.status === 'available' || npc.status === 'deployed') {
-                totalTech += npc.tech || 0;
-                
-                // Add equipment bonuses
-                if (npc.equipped_item) {
-                    const items = this.gameState.get('items') || [];
-                    const item = items.find(i => i.id === npc.equipped_item);
-                    if (item && item.bonus && item.bonus.tech) {
-                        totalTech += item.bonus.tech;
+                input.addEventListener('input', (e) => {
+                    // Real-time validation
+                    const value = parseInt(e.target.value);
+                    if (isNaN(value) || value < 0) {
+                        e.target.classList.add('invalid');
+                    } else {
+                        e.target.classList.remove('invalid');
                     }
-                }
-            }
-        });
-        
-        this.setResource('technical-expertise', totalTech, true);
-        return totalTech;
-    }
-
-    /**
-     * Daily resource generation
-     */
-    addDailyResources() {
-        const generated = {};
-        
-        for (const [resourceType, amount] of Object.entries(this.dailyGenerationRates)) {
-            if (amount > 0) {
-                const oldAmount = this.getResource(resourceType);
-                const newAmount = this.addResource(resourceType, amount);
-                generated[resourceType] = newAmount - oldAmount;
-            }
-        }
-        
-        if (Object.keys(generated).length > 0) {
-            this.gameState.logActivity(`Daily resource generation: ${this.formatResourceList(generated)}`);
-        }
-        
-        return generated;
-    }
-
-    /**
-     * Check for automatic daily generation
-     */
-    checkDailyGeneration() {
-        const lastGeneration = this.gameState.get('lastDailyGeneration');
-        const now = Date.now();
-        const dayInMs = 24 * 60 * 60 * 1000;
-        
-        // For demo purposes, generate every 5 minutes instead of daily
-        const generationInterval = 5 * 60 * 1000;
-        
-        if (!lastGeneration || (now - lastGeneration) >= generationInterval) {
-            this.addDailyResources();
-            this.gameState.set('lastDailyGeneration', now);
-        }
-    }
-
-    /**
-     * Reset all resources
-     */
-    resetResources() {
-        const resourceTypes = Object.keys(this.resourceNames);
-        
-        resourceTypes.forEach(resourceType => {
-            this.setResource(resourceType, 0, true);
-        });
-        
-        this.gameState.logActivity('All resources reset to 0');
-    }
-
-    /**
-     * Get resource efficiency based on capacity and drain
-     */
-    getPowerEfficiency() {
-        const totalCapacity = this.gameState.get('totalCelestialPowerCapacity') || 2000;
-        const currentDrain = this.gameState.get('currentCelestialPowerDrain') || 0;
-        
-        return MathUtils.percentage(totalCapacity - currentDrain, totalCapacity);
-    }
-
-    /**
-     * Get effective celestial power capacity
-     */
-    getEffectivePowerCapacity() {
-        const totalCapacity = this.gameState.get('totalCelestialPowerCapacity') || 2000;
-        const currentDrain = this.gameState.get('currentCelestialPowerDrain') || 0;
-        
-        return totalCapacity - currentDrain;
-    }
-
-    /**
-     * Update GM resource input fields
-     */
-    updateGMResourceInputs() {
-        Object.keys(this.resourceNames).forEach(resourceType => {
-            if (resourceType !== 'technical-expertise') { // Skip calculated resources
-                const element = document.getElementById(`gm-${resourceType}`);
-                if (element) {
-                    element.value = this.getResource(resourceType);
-                }
-            }
-        });
-        
-        // Update power capacity display
-        this.updatePowerCapacity();
-    }
-
-    /**
-     * Update player resource displays
-     */
-    updatePlayerResourceDisplays() {
-        Object.keys(this.resourceNames).forEach(resourceType => {
-            const element = document.getElementById(`player-${resourceType}`);
-            if (element) {
-                element.textContent = this.formatResourceAmount(this.getResource(resourceType));
+                });
             }
         });
     }
 
-    /**
-     * Update all resource displays
-     */
-    updateAllResourceDisplays() {
-        // Calculate tech expertise first
-        this.calculateTechExpertise();
-        
-        // Update player displays
-        this.updatePlayerResourceDisplays();
-        
-        // Update GM inputs
-        this.updateGMResourceInputs();
-        
-        // Update calculated tech expertise display
-        const techElement = document.getElementById('calculated-tech-expertise');
-        if (techElement) {
-            const npcs = this.gameState.get('npcs') || [];
-            const activeNPCs = npcs.filter(npc => npc.status === 'available' || npc.status === 'deployed').length;
-            techElement.textContent = `${this.getResource('technical-expertise')} (from ${activeNPCs} NPCs)`;
+    updateResource(resourceId, value) {
+        const numValue = Math.max(0, parseInt(value) || 0);
+        this.gameState.setResource(resourceId, numValue);
+        this.updateDisplay(resourceId, numValue);
+    }
+
+    updateDisplay(resourceId, value) {
+        // Update display value
+        const displayElement = document.getElementById(resourceId);
+        if (displayElement) {
+            displayElement.textContent = value;
+        }
+
+        // Update input value
+        const inputElement = document.getElementById(`${resourceId}-input`);
+        if (inputElement) {
+            inputElement.value = value;
+        }
+
+        // Add visual feedback for changes
+        this.animateResourceChange(resourceId);
+    }
+
+    updateAllDisplays() {
+        Object.keys(this.resources).forEach(resourceId => {
+            const value = this.gameState.getResource(resourceId);
+            this.updateDisplay(resourceId, value);
+        });
+    }
+
+    animateResourceChange(resourceId) {
+        const displayElement = document.getElementById(resourceId);
+        if (displayElement) {
+            displayElement.classList.add('resource-updated');
+            setTimeout(() => {
+                displayElement.classList.remove('resource-updated');
+            }, 500);
         }
     }
 
-    /**
-     * Update power capacity display
-     */
-    updatePowerCapacity() {
-        const powerDisplay = document.getElementById('power-capacity');
-        if (powerDisplay) {
-            const effectiveCapacity = this.getEffectivePowerCapacity();
-            const currentDrain = this.gameState.get('currentCelestialPowerDrain') || 0;
-            
-            if (currentDrain > 0) {
-                powerDisplay.textContent = `/ ${effectiveCapacity} (drain: ${Math.round(currentDrain)})`;
-            } else {
-                powerDisplay.textContent = `/ ${effectiveCapacity}`;
-            }
-            
-            // Color code based on efficiency
-            const efficiency = this.getPowerEfficiency();
-            if (efficiency < 50) {
-                powerDisplay.style.color = 'var(--red)';
-            } else if (efficiency < 75) {
-                powerDisplay.style.color = 'var(--gold)';
-            } else {
-                powerDisplay.style.color = 'var(--green)';
-            }
-        }
+    // Resource manipulation methods
+    addResource(resourceId, amount) {
+        const currentValue = this.gameState.getResource(resourceId);
+        this.updateResource(resourceId, currentValue + amount);
     }
 
-    /**
-     * Handle global resource updates from GM
-     */
-    updateGlobalResource(resourceType, value) {
-        if (!this.gameState.gameState.auth?.isGM()) {
-            throw new Error('Only GMs can update global resources');
-        }
-        
-        const amount = parseInt(value) || 0;
-        this.setResource(resourceType, amount);
-        
-        this.gameState.logActivity(`GM updated ${this.resourceNames[resourceType]} to ${amount}`);
+    subtractResource(resourceId, amount) {
+        const currentValue = this.gameState.getResource(resourceId);
+        this.updateResource(resourceId, Math.max(0, currentValue - amount));
     }
 
-    /**
-     * Format resource amount for display
-     */
-    formatResourceAmount(amount) {
-        if (amount >= 1000000) {
-            return (amount / 1000000).toFixed(1) + 'M';
-        } else if (amount >= 1000) {
-            return (amount / 1000).toFixed(1) + 'K';
-        }
-        return amount.toString();
+    // Utility methods
+    getResourceInfo(resourceId) {
+        return this.resources[resourceId];
     }
 
-    /**
-     * Format resource list for display
-     */
-    formatResourceList(resources) {
-        return Object.entries(resources)
-            .filter(([_, amount]) => amount > 0)
-            .map(([resourceType, amount]) => {
-                const icon = this.resourceIcons[resourceType] || '';
-                return `${icon}${amount}`;
-            })
-            .join(', ');
-    }
-
-    /**
-     * Get resource icon
-     */
-    getResourceIcon(resourceType) {
-        return this.resourceIcons[resourceType] || '❓';
-    }
-
-    /**
-     * Get resource name
-     */
-    getResourceName(resourceType) {
-        return this.resourceNames[resourceType] || resourceType;
-    }
-
-    /**
-     * Validation helpers
-     */
-    isValidResourceType(resourceType) {
-        return Object.keys(this.resourceNames).includes(resourceType);
-    }
-
-    /**
-     * Get all resources as object
-     */
     getAllResources() {
-        const resources = {};
-        Object.keys(this.resourceNames).forEach(resourceType => {
-            resources[resourceType] = this.getResource(resourceType);
+        const result = {};
+        Object.keys(this.resources).forEach(resourceId => {
+            result[resourceId] = {
+                ...this.resources[resourceId],
+                value: this.gameState.getResource(resourceId)
+            };
         });
-        return resources;
+        return result;
     }
 
-    /**
-     * Set multiple resources at once
-     */
-    setMultipleResources(resources) {
-        const changes = {};
+    getTotalValue() {
+        return Object.keys(this.resources).reduce((total, resourceId) => {
+            return total + this.gameState.getResource(resourceId);
+        }, 0);
+    }
+
+    // Cost checking utilities
+    canAfford(costs) {
+        return this.gameState.canAfford(costs);
+    }
+
+    formatCosts(costs) {
+        return Object.entries(costs).map(([resourceId, amount]) => {
+            const resource = this.resources[resourceId];
+            return `${resource.icon} ${amount}`;
+        }).join(' ');
+    }
+
+    // Resource generation/income simulation
+    simulateIncome(baseAmount = 10) {
+        // This could be called periodically to simulate resource generation
+        const powerIncome = Math.floor(baseAmount * (1 + Math.random() * 0.5));
+        this.addResource('celestial-power', powerIncome);
         
-        for (const [resourceType, amount] of Object.entries(resources)) {
-            if (this.isValidResourceType(resourceType)) {
-                const oldAmount = this.getResource(resourceType);
-                const newAmount = this.setResource(resourceType, amount);
-                changes[resourceType] = { old: oldAmount, new: newAmount };
-            }
+        // Chance for bonus resources
+        if (Math.random() < 0.1) { // 10% chance
+            const bonusResource = Object.keys(this.resources)[Math.floor(Math.random() * Object.keys(this.resources).length)];
+            this.addResource(bonusResource, 1);
         }
-        
-        return changes;
     }
 
-    /**
-     * Get resource statistics
-     */
-    getResourceStats() {
-        const resources = this.getAllResources();
-        const stats = {
-            total: Object.values(resources).reduce((sum, amount) => sum + amount, 0),
-            types: Object.keys(resources).length,
-            powerEfficiency: this.getPowerEfficiency(),
-            effectiveCapacity: this.getEffectivePowerCapacity(),
-            canAffordBasicUpgrade: this.canAfford({
-                'celestial-power': 100,
-                'celestial-silver': 50
-            })
-        };
-        
-        return stats;
-    }
-
-    /**
-     * Export resources for backup
-     */
+    // Export/Import helpers
     exportResources() {
-        return {
-            resources: this.getAllResources(),
-            powerCapacity: this.gameState.get('totalCelestialPowerCapacity'),
-            powerDrain: this.gameState.get('currentCelestialPowerDrain'),
-            lastGeneration: this.gameState.get('lastDailyGeneration'),
-            timestamp: Date.now()
-        };
+        return this.getAllResources();
     }
 
-    /**
-     * Import resources from backup
-     */
-    importResources(data) {
-        if (!this.gameState.gameState.auth?.isGM()) {
-            throw new Error('Only GMs can import resources');
-        }
-        
-        if (data.resources) {
-            this.setMultipleResources(data.resources);
-        }
-        
-        if (data.powerCapacity) {
-            this.gameState.set('totalCelestialPowerCapacity', data.powerCapacity);
-        }
-        
-        if (data.powerDrain) {
-            this.gameState.set('currentCelestialPowerDrain', data.powerDrain);
-        }
-        
-        if (data.lastGeneration) {
-            this.gameState.set('lastDailyGeneration', data.lastGeneration);
-        }
-        
-        this.gameState.logActivity('Resources imported from backup');
+    importResources(resourceData) {
+        Object.entries(resourceData).forEach(([resourceId, data]) => {
+            if (this.resources[resourceId] && typeof data.value === 'number') {
+                this.updateResource(resourceId, data.value);
+            }
+        });
     }
 
-    /**
-     * Log resource changes
-     */
-    logResourceChange(resourceType, oldAmount, newAmount) {
-        if (oldAmount !== newAmount) {
-            const change = newAmount - oldAmount;
-            const changeText = change > 0 ? `+${change}` : change.toString();
-            
-            console.log(`💰 ${this.getResourceName(resourceType)}: ${oldAmount} → ${newAmount} (${changeText})`);
-        }
+    // Debug methods
+    maxAllResources() {
+        Object.keys(this.resources).forEach(resourceId => {
+            this.updateResource(resourceId, 9999);
+        });
     }
 
-    /**
-     * Debug helper to add test resources
-     */
-    addTestResources() {
-        if (process.env.NODE_ENV !== 'development') {
-            console.warn('Test resources only available in development');
-            return;
-        }
-        
-        this.addResource('celestial-power', 1000);
-        this.addResource('celestial-silver', 500);
-        this.addResource('runic-shards', 50);
-        this.addResource('divine-essence', 10);
-        
-        this.gameState.logActivity('Test resources added (development mode)');
+    resetAllResources() {
+        Object.keys(this.resources).forEach(resourceId => {
+            this.updateResource(resourceId, 0);
+        });
     }
 }
-
-export default ResourceManager;
